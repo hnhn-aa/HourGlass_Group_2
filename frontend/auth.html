@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập / Đăng ký – HourGlass</title>
+<meta name="description" content="Đăng nhập hoặc tạo tài khoản HourGlass cho ứng viên / sinh viên và nhà tuyển dụng.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+<script src="js/icons.js"></script>
+
+<div class="auth-shell">
+
+  <!-- Cột thương hiệu (ẩn trên mobile); nội dung đổi theo vai trò bằng auth.js -->
+  <aside class="auth-aside">
+    <a class="logo logo-inverse" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a>
+    <div class="aside-copy">
+      <h2 id="aside-title"></h2>
+      <p id="aside-text"></p>
+      <ul class="aside-points" id="aside-points"></ul>
+    </div>
+    <small class="aside-foot">© 2026 HourGlass. Made for students, with care.</small>
+  </aside>
+
+  <main class="auth-main">
+    <a class="logo auth-logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a>
+    <a class="back-link" href="index.html"><svg class="icon" width="16" height="16" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg> Về trang chủ</a>
+
+    <section class="auth-card" aria-labelledby="auth-title">
+
+      <!-- Chuyển Đăng nhập / Đăng ký -->
+      <div class="mode-tabs" id="mode-tabs" role="tablist" aria-label="Chọn hành động">
+        <button type="button" role="tab" data-mode="signin">Đăng nhập</button>
+        <button type="button" role="tab" data-mode="signup">Đăng ký</button>
+      </div>
+
+      <h1 id="auth-title"></h1>
+      <p class="auth-sub" id="auth-sub"></p>
+
+      <p class="auth-notice" id="auth-notice" role="status" hidden></p>
+
+      <!-- Chọn vai trò: Ứng viên / Sinh viên hoặc Nhà tuyển dụng -->
+      <fieldset class="role-seg" id="role-seg">
+        <legend class="sr-only">Bạn là ai?</legend>
+        <label><input type="radio" name="role" value="student" checked>
+          <span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-user"/></svg>Ứng viên / Sinh viên</span></label>
+        <label><input type="radio" name="role" value="employer">
+          <span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-building"/></svg>Nhà tuyển dụng</span></label>
+      </fieldset>
+
+      <!-- ================= FORM ĐĂNG NHẬP ================= -->
+      <form class="auth-form" id="form-signin" data-mode="signin" novalidate>
+        <p class="form-alert" data-alert role="alert" hidden></p>
+
+        <div class="field">
+          <label for="si-email">Email</label>
+          <input id="si-email" name="email" type="email" autocomplete="email" placeholder="ban@email.com" data-rules="required|email" data-label="email">
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="si-password">Mật khẩu</label>
+          <div class="input-wrap">
+            <input id="si-password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" data-rules="required" data-label="mật khẩu">
+            <button type="button" class="pw-toggle" data-toggle-pw aria-label="Hiện mật khẩu"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          </div>
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <button class="primary-btn full lg" type="submit">Đăng nhập <svg class="icon" width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+
+        <div class="demo-box" id="demo-box">
+          <span>Tài khoản thử (mật khẩu <b>123456</b>):</span>
+          <button type="button" id="demo-fill"></button>
+        </div>
+        <p class="switch-line">Chưa có tài khoản? <button type="button" class="link" data-switch="signup">Đăng ký ngay</button></p>
+      </form>
+
+      <!-- ================= FORM ĐĂNG KÝ ================= -->
+      <form class="auth-form" id="form-signup" data-mode="signup" novalidate hidden>
+        <p class="form-alert" data-alert role="alert" hidden></p>
+
+        <div class="field">
+          <label for="su-name">Họ và tên</label>
+          <input id="su-name" name="full_name" autocomplete="name" placeholder="Nguyễn Văn A" data-rules="required|fullname" data-label="họ và tên">
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <!-- Chỉ hiện cho vai trò tương ứng (data-for) -->
+        <div class="field" data-for="student">
+          <label for="su-uni">Trường đang theo học <span class="opt">(không bắt buộc)</span></label>
+          <input id="su-uni" name="university" placeholder="Đại học Kinh tế Quốc dân" data-rules="" data-label="trường">
+          <p class="field-error" role="alert"></p>
+        </div>
+        <div class="field" data-for="employer" hidden>
+          <label for="su-company">Tên công ty / doanh nghiệp</label>
+          <input id="su-company" name="company_name" autocomplete="organization" placeholder="Công ty TNHH ABC" data-rules="required|min:2" data-label="tên công ty">
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="su-email">Email</label>
+            <input id="su-email" name="email" type="email" autocomplete="email" placeholder="ban@email.com" data-rules="required|email" data-label="email">
+            <p class="field-error" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="su-phone">Số điện thoại</label>
+            <input id="su-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0912345678" data-rules="required|phone" data-label="số điện thoại">
+            <p class="field-error" role="alert"></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="su-password">Mật khẩu</label>
+          <div class="input-wrap">
+            <input id="su-password" name="password" type="password" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự, có chữ và số" data-rules="required|min:8|password" data-label="mật khẩu">
+            <button type="button" class="pw-toggle" data-toggle-pw aria-label="Hiện mật khẩu"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          </div>
+          <div class="pw-meter" id="pw-meter" aria-live="polite"><i></i><i></i><i></i><i></i><span></span></div>
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="su-confirm">Nhập lại mật khẩu</label>
+          <div class="input-wrap">
+            <input id="su-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" data-rules="required|match:password" data-label="mật khẩu xác nhận">
+            <button type="button" class="pw-toggle" data-toggle-pw aria-label="Hiện mật khẩu"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          </div>
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <div class="field check-field">
+          <label class="check"><input type="checkbox" name="agree" data-rules="checked" data-label="Bạn cần đồng ý với Điều khoản sử dụng để tiếp tục."><span>Tôi đồng ý với <a href="about.html">Điều khoản sử dụng</a> và <a href="about.html#contact">Chính sách bảo mật</a>.</span></label>
+          <p class="field-error" role="alert"></p>
+        </div>
+
+        <button class="primary-btn full lg" type="submit">Tạo tài khoản <svg class="icon" width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <p class="switch-line">Đã có tài khoản? <button type="button" class="link" data-switch="signin">Đăng nhập</button></p>
+      </form>
+
+      <!-- Trạng thái đăng ký thành công -->
+      <div class="auth-success" id="auth-success" hidden>
+        <span><svg class="icon" width="34" height="34" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <h2>Tạo tài khoản thành công!</h2>
+        <p>Đang chuyển bạn tới không gian làm việc…</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/validators.js"></script><script src="js/auth.js"></script>
+</body>
+</html>

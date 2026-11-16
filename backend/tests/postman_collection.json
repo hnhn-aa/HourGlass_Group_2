@@ -1,0 +1,336 @@
+{
+  "info": {
+    "name": "Hourglass Student Job Portal API",
+    "_postman_id": "b25dtcn313-hourglass-job-portal",
+    "description": "Bộ sưu tập kiểm thử toàn bộ API đồng bộ 100% với database MySQL hourglass.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health, Users & Danh mục",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/"
+          }
+        },
+        {
+          "name": "Danh sách Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users?skip=0&limit=50"
+          }
+        },
+        {
+          "name": "Danh sách Student Profiles",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Danh sách Recruiter Profiles",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/recruiters"
+          }
+        },
+        {
+          "name": "Danh sách Ngành nghề (Categories)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Danh sách Địa điểm (Locations)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/locations"
+          }
+        },
+        {
+          "name": "Danh sách Trạng thái đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/application-statuses"
+          }
+        },
+        {
+          "name": "Tạo User mới (student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ngo Xuan Tai\",\n  \"email\": \"tai.nx@ptit.edu.vn\",\n  \"password\": \"123456\",\n  \"phone\": \"0988111222\",\n  \"role\": \"student\",\n  \"university\": \"PTIT\",\n  \"major\": \"Cong nghe thong tin\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Đăng tin & Tiếp nhận tin đăng",
+      "item": [
+        {
+          "name": "Đăng tin tuyển dụng mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recruiter_id\": 1,\n  \"category_id\": 4,\n  \"location_id\": 2,\n  \"title\": \"Thuc tap sinh Backend Python (FastAPI)\",\n  \"description\": \"Phat trien REST API, toi uu truy van MySQL va viet test case.\",\n  \"requirements\": \"Biet Python, SQL co ban, Git\",\n  \"salary_min\": 3000000,\n  \"salary_max\": 5000000,\n  \"job_type\": \"internship\",\n  \"work_time\": \"Thu 2 - Thu 6\",\n  \"quantity\": 2,\n  \"start_date\": \"2026-12-01\",\n  \"end_date\": \"2027-06-30\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": "{{baseUrl}}/api/jobs"
+          }
+        },
+        {
+          "name": "Tiếp nhận danh sách tin đã duyệt (approved)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/jobs?status=approved&skip=0&limit=20"
+          }
+        },
+        {
+          "name": "Lấy tin tuyển dụng mới nhất",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/jobs/latest?limit=10"
+          }
+        },
+        {
+          "name": "Xem chi tiết tin tuyển dụng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/jobs/1"
+          }
+        },
+        {
+          "name": "Admin xem tin chờ duyệt (pending)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/jobs?status=pending"
+          }
+        },
+        {
+          "name": "Admin tiếp nhận & duyệt tin mới",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"approved_by\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/jobs/4/review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Ứng tuyển & Cập nhật trạng thái hồ sơ",
+      "item": [
+        {
+          "name": "Nộp CV (Form-data Upload File)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "job_id",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "student_id",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "cover_letter",
+                  "value": "Em mong muon ung tuyen vi tri nay.",
+                  "type": "text"
+                },
+                {
+                  "key": "cv_file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/applications"
+          }
+        },
+        {
+          "name": "Nộp đơn ứng tuyển (JSON dùng cv_id có sẵn)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 2,\n  \"job_id\": 3,\n  \"cv_id\": 2,\n  \"cover_letter\": \"Em co kinh nghiem giao tiep va ban hang.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/applications/json"
+          }
+        },
+        {
+          "name": "Danh sách đơn ứng tuyển",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/applications?skip=0&limit=20"
+          }
+        },
+        {
+          "name": "Lịch sử log trạng thái đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/applications/1/logs"
+          }
+        },
+        {
+          "name": "Cập nhật trạng thái hồ sơ ứng tuyển",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\",\n  \"note\": \"Chuc mung ban da trung tuyen, hen nhan viec.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/applications/1/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Đánh giá & Chấm điểm uy tín",
+      "item": [
+        {
+          "name": "Gửi đánh giá uy tín",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewer_id\": 3,\n  \"target_id\": 4,\n  \"job_id\": 1,\n  \"rating\": 5,\n  \"comment\": \"Cong ty rat uy tin, ho tro sinh vien nhiet tinh.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews"
+          }
+        },
+        {
+          "name": "Xem điểm uy tín người dùng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/4/reputation"
+          }
+        },
+        {
+          "name": "Danh sách đánh giá của người dùng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/4/reviews"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Khiếu nại & Quản trị Admin",
+      "item": [
+        {
+          "name": "Gửi khiếu nại vi phạm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reporter_id\": 2,\n  \"report_type\": \"job\",\n  \"target_id\": 1,\n  \"reason\": \"Can kiem tra lai thoi gian ca lam viec thuc te.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reports"
+          }
+        },
+        {
+          "name": "Admin tiếp nhận danh sách khiếu nại",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/reports?status=pending"
+          }
+        },
+        {
+          "name": "Admin xử lý khiếu nại",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"admin_note\": \"Da xac minh va nhac nho nha tuyen dung bo sung thong tin.\",\n  \"remove_job\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/reports/1"
+          }
+        },
+        {
+          "name": "Admin gỡ tin đăng vi phạm (soft reject)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/admin/jobs/2/remove?reason=Vi+pham+chinh+sach+tuyen+dung"
+          }
+        },
+        {
+          "name": "Admin thống kê dữ liệu hệ thống",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/statistics"
+          }
+        }
+      ]
+    }
+  ]
+}
