@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tìm việc làm – HourGlass</title>
+<meta name="description" content="HourGlass - nền tảng việc làm dành riêng cho sinh viên.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/jobs.css">
+</head>
+<body>
+<script src="js/icons.js"></script>
+<div id="site-header"></div>
+<main class="page-bg">
+<section class="jobs-hero"><div class="container">
+<span class="kicker">CƠ HỘI ĐANG CHỜ BẠN</span>
+<h1>Tìm công việc <em>đúng chất bạn</em></h1>
+<p>Khám phá cơ hội linh hoạt từ những doanh nghiệp uy tín.</p>
+<div class="wide-search">
+<label><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg><input id="term" placeholder="Tên công việc, kỹ năng hoặc công ty"></label>
+<label><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-pin"/></svg><select id="area"><option value="">Tất cả khu vực</option><option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option><option value="Hà Nội">Hà Nội</option><option value="Remote">Remote</option></select></label>
+<button class="primary-btn" id="search-btn" type="button">Tìm kiếm</button>
+</div></div></section>
+<section class="container jobs-layout">
+<aside class="filters" id="filters-sidebar">
+<div class="filter-title">
+  <strong>Bộ lọc tìm kiếm</strong>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button id="clear-filters" type="button">Xóa tất cả</button>
+    <button class="filter-close-btn" id="filter-close" type="button" aria-label="Đóng">&times;</button>
+  </div>
+</div>
+<div class="filter-group"><h4>Danh mục</h4><label class="check-row"><input type="checkbox" data-filter="cat" value="Phục vụ"><span></span> Phục vụ<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Bán hàng"><span></span> Bán hàng<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Marketing"><span></span> Marketing<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Công nghệ thông tin"><span></span> Công nghệ thông tin<small data-count></small></label></div>
+<div class="filter-group"><h4>Khu vực</h4><label class="check-row"><input type="checkbox" data-filter="area" value="TP. Hồ Chí Minh"><span></span> TP. Hồ Chí Minh<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="area" value="Hà Nội"><span></span> Hà Nội<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="area" value="Đà Nẵng"><span></span> Đà Nẵng<small data-count></small></label></div>
+<div class="filter-group"><h4>Ca làm việc</h4><label class="check-row"><input type="checkbox" data-filter="shift" value="morning"><span></span> Ca sáng<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="afternoon"><span></span> Ca chiều<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="evening"><span></span> Ca tối<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="flexible"><span></span> Linh hoạt<small data-count></small></label></div>
+<div class="filter-group"><h4>Hình thức</h4><label class="check-row"><input type="checkbox" data-filter="type" value="Part-time"><span></span> Part-time<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="type" value="Toàn thời gian"><span></span> Toàn thời gian<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="type" value="Thực tập"><span></span> Thực tập<small data-count></small></label></div>
+<div class="filter-group"><h4>Làm việc từ xa</h4><label class="check-row"><input type="checkbox" id="remote"><span></span> Remote</label></div>
+<div class="filter-group"><h4>Mức lương tối thiểu</h4><input type="range" id="salary-range" min="20" max="60" value="20" step="5"><div class="range-label"><span id="salary-val">Từ 20K/giờ</span><span>60K+/giờ</span></div></div>
+</aside>
+<div class="filters-backdrop" id="filters-backdrop" hidden></div>
+<div class="results">
+<div class="results-head"><div><strong id="result-count"></strong><span>Cập nhật mới nhất hôm nay</span></div>
+<button class="filter-mobile" id="open-filter-mobile" type="button"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-filter"/></svg> Bộ lọc</button>
+<select id="sort-select"><option value="newest">Mới nhất</option><option value="salary">Lương cao nhất</option><option value="urgent">Sắp hết hạn</option><option value="title">Theo tên A-Z</option></select></div>
+<!-- Quick filter tabs by shift/area -->
+<div class="jobs-quick-tabs" id="jobs-quick-tabs">
+  <button class="jqt-btn active" data-shift="all">Tất cả ca</button>
+  <button class="jqt-btn" data-shift="morning">🌅 Ca sáng</button>
+  <button class="jqt-btn" data-shift="afternoon">☀️ Ca chiều</button>
+  <button class="jqt-btn" data-shift="evening">🌙 Ca tối</button>
+  <button class="jqt-btn" data-shift="flexible">⏰ Ca linh hoạt</button>
+  <button class="jqt-btn" data-shift="remote">🏠 Remote</button>
+</div>
+<div class="job-list-grid" id="job-list"></div>
+<div class="empty-state" id="empty-state" hidden><span><svg class="icon" width="30" height="30" aria-hidden="true"><use href="#i-search"/></svg></span><h3>Chưa tìm thấy công việc phù hợp</h3><p>Hãy thử một từ khóa hoặc bộ lọc khác nhé.</p></div>
+<!-- Pagination -->
+<div class="pagination-row" id="pagination-row"></div>
+</div></section>
+</main>
+<div id="site-footer"></div>
+<script src="js/layout.js"></script><script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/jobs.js"></script>
+<script src="js/notify.js"></script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Danh mục việc làm – HourGlass</title>
+<meta name="description" content="Khám phá các danh mục công việc làm thêm, part-time và thực tập dành cho sinh viên trên HourGlass.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/categories.css">
+</head>
+<body>
+<script src="js/icons.js"></script>
+<div id="site-header"></div>
+
+<main class="page-bg">
+<section class="categories-hero">
+  <div class="container">
+    <span class="kicker">ĐỊNH HƯỚNG NGHỀ NGHIỆP</span>
+    <h1>Danh mục việc làm <em>dành riêng cho sinh viên</em></h1>
+    <p>Khám phá công việc phù hợp với chuyên ngành, lịch học và sở thích của bạn. 100% công việc đã được HourGlass kiểm duyệt an toàn.</p>
+    <div class="cat-search-bar">
+      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="cat-search-input" placeholder="Tìm kiếm nhanh danh mục (ví dụ: Marketing, Pha chế, IT...)" autocomplete="off">
+    </div>
+  </div>
+</section>
+
+<section class="container categories-layout">
+  <div class="cat-filter-tabs" id="cat-tabs">
+    <button class="cat-tab-btn active" data-filter="all">Tất cả ngành nghề</button>
+    <button class="cat-tab-btn" data-filter="fb">F&amp;B / Dịch vụ</button>
+    <button class="cat-tab-btn" data-filter="tech">Công nghệ / IT</button>
+    <button class="cat-tab-btn" data-filter="biz">Kinh doanh / Bán lẻ</button>
+    <button class="cat-tab-btn" data-filter="media">Marketing &amp; Media</button>
+    <button class="cat-tab-btn" data-filter="edu">Giáo dục / Gia sư</button>
+  </div>
+
+  <div class="category-full-grid" id="category-grid">
+    <!-- Rendered via JS -->
+  </div>
+
+  <section class="hot-cats-section">
+    <div class="section-head">
+      <div>
+        <span class="kicker">XU HƯỚNG TÌM KIẾM</span>
+        <h2>Ngành nghề được sinh viên quan tâm nhất</h2>
+      </div>
+      <a class="link-btn" href="jobs.html">Xem tất cả công việc <svg class="icon" width="17" height="17" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="hot-cats-grid" id="hot-cats-grid">
+      <!-- Hot categories cards -->
+    </div>
+  </section>
+
+  <section class="employer-cta" style="margin-top: 50px;">
+    <div class="container employer-inner">
+      <div>
+        <span class="cta-pill">DÀNH CHO DOANH NGHIỆP</span>
+        <h2>Doanh nghiệp của bạn cần nhân sự thuộc danh mục nào?</h2>
+        <p>Đăng tin tuyển dụng miễn phí, tiếp cận hàng ngàn sinh viên từ các trường đại học hàng đầu ngay hôm nay.</p>
+        <a class="white-btn" href="employer.html">Đăng tin tuyển dụng ngay <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="cta-visual">
+        <span class="talent-card t1"><i>CF</i><b>Highlands Coffee</b><small>Đang tuyển 5 Phục vụ</small></span>
+        <span class="talent-card t2"><i>FP</i><b>FPT Shop</b><small>Đang tuyển 4 Bán hàng</small></span>
+        <span class="talent-card t3"><i>LM</i><b>Lumos Studio</b><small>Đang tuyển 2 Marketing</small></span>
+      </div>
+    </div>
+  </section>
+</section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/layout.js"></script><script src="js/mock-data.js"></script>
+<script src="js/main.js"></script><script src="js/common.js"></script>
+<script src="js/adapter.js"></script>
+<script src="js/modal.js"></script>
+<script>
+(function() {
+  'use strict';
+  var allJobs = window.HG_JOBS || [];
+
+  var CATEGORIES_DATA = [
+    {
+      id: 1,
+      name: "Phục vụ & F&B",
+      filterName: "Phục vụ",
+      group: "fb",
+      icon: "briefcase",
+      badgeClass: "cat-badge-0",
+      description: "Nhân viên phục vụ bàn, pha chế barista, phụ bếp tại các chuỗi cà phê và nhà hàng lớn.",
+      salary: "25.000 – 35.000đ / giờ",
+      tags: ["Linh hoạt ca", "Bao ăn ca", "Không cần kinh nghiệm", "Phù hợp sinh viên"],
+      companies: "Highlands, The Coffee House, Phúc Long"
+    },
+    {
+      id: 2,
+      name: "Bán hàng & Thu ngân",
+      filterName: "Bán hàng",
+      group: "biz",
+      icon: "sparkle",
+      badgeClass: "cat-badge-1",
+      description: "Tư vấn sản phẩm, thanh toán và sắp xếp quầy kệ tại siêu thị, shop thời trang, cửa hàng tiện lợi.",
+      salary: "25.000 – 35.000đ / giờ + Thưởng doanh số",
+      tags: ["Rèn kỹ năng giao tiếp", "Chiết khấu nhân viên", "Ca sáng / tối"],
+      companies: "FPT Shop, WinMart, Circle K, Miniso"
+    },
+    {
+      id: 3,
+      name: "Marketing & Truyền thông",
+      filterName: "Marketing",
+      group: "media",
+      icon: "chart",
+      badgeClass: "cat-badge-2",
+      description: "Sáng tạo nội dung (Content), quản lý fanpage, hỗ trợ tổ chức sự kiện và chạy quảng cáo cơ bản.",
+      salary: "30.000 – 45.000đ / giờ (hoặc 3-5 triệu/tháng)",
+      tags: ["Làm việc Remote / Hybrid", "Thực tập có lương", "Học hỏi Digital"],
+      companies: "Lumos Studio, Media Agency, Startup EdTech"
+    },
+    {
+      id: 4,
+      name: "Công nghệ thông tin",
+      filterName: "Công nghệ thông tin",
+      group: "tech",
+      icon: "settings",
+      badgeClass: "cat-badge-3",
+      description: "Thực tập sinh lập trình Web, Mobile, kiểm thử ứng dụng (QA/Tester), nhập liệu và hỗ trợ kỹ thuật.",
+      salary: "3.500.000 – 6.000.000đ / tháng",
+      tags: ["Mentorship 1-1", "Dự án thực tế", "Hỗ trợ dấu thực tập"],
+      companies: "FPT Software, VNPAY, Viettel Digital"
+    },
+    {
+      id: 5,
+      name: "Thiết kế & Đồ họa",
+      filterName: "Thiết kế",
+      group: "media",
+      icon: "sparkle",
+      badgeClass: "cat-badge-4",
+      description: "Thiết kế ấn phẩm truyền thông, banner, poster, chỉnh sửa video ngắn TikTok/Reels bằng Canva, Premiere.",
+      salary: "35.000 – 50.000đ / giờ (theo sản phẩm)",
+      tags: ["Nhận việc theo task", "Chủ động 100% thời gian", "Làm từ xa"],
+      companies: "Creative Lab, Chuỗi thương hiệu thời trang"
+    },
+    {
+      id: 6,
+      name: "Gia sư & Giáo dục",
+      filterName: "Gia sư",
+      group: "edu",
+      icon: "file",
+      badgeClass: "cat-badge-5",
+      description: "Dạy kèm Toán, Tiếng Anh, Lý, Hóa cấp 1-2-3 hoặc làm trợ giảng tại các trung tâm ngoại ngữ.",
+      salary: "120.000 – 200.000đ / buổi",
+      tags: ["Thu nhập cao", "Chỉ 2-3 buổi/tuần", "Phù hợp mọi khối ngành"],
+      companies: "Hệ thống gia sư uy tín, Trung tâm Anh ngữ ILA"
+    },
+    {
+      id: 7,
+      name: "Chăm sóc khách hàng",
+      filterName: "CSKH",
+      group: "biz",
+      icon: "bell",
+      badgeClass: "cat-badge-6",
+      description: "Trực tổng đài, trả lời tin nhắn Fanpage, giải đáp thắc mắc và hỗ trợ đơn hàng trực tuyến.",
+      salary: "28.000 – 38.000đ / giờ",
+      tags: ["Trực ca online tại nhà", "Không áp doanh số", "Được đào tạo bài bản"],
+      companies: "Shopee, Lazada, Tiki Partner"
+    },
+    {
+      id: 8,
+      name: "Văn phòng & Hành chính",
+      filterName: "Văn phòng",
+      group: "biz",
+      icon: "calendar",
+      badgeClass: "cat-badge-7",
+      description: "Hỗ trợ soạn thảo hợp đồng, quản lý hồ sơ, nhập dữ liệu và các công việc hỗ trợ văn phòng.",
+      salary: "25.000 – 32.000đ / giờ",
+      tags: ["Môi trường chuyên nghiệp", "Học quy trình doanh nghiệp", "Giờ hành chính"],
+      companies: "Các tập đoàn & Văn phòng luật"
+    }
+  ];
+
+  var grid = document.getElementById('category-grid');
+  var searchInput = document.getElementById('cat-search-input');
+  var tabs = document.querySelectorAll('.cat-tab-btn');
+  var activeGroup = 'all';
+
+  function countJobs(cat) {
+    var count = allJobs.filter(function(j) {
+      return j.tags[0] === cat.filterName ||
+        (cat.filterName === 'Phục vụ' && j.tags[0] === 'Phục vụ') ||
+        (cat.filterName === 'Bán hàng' && j.tags[0] === 'Bán hàng') ||
+        (cat.filterName === 'Marketing' && j.tags[0] === 'Marketing') ||
+        (cat.filterName === 'Công nghệ thông tin' && j.tags[0] === 'Công nghệ thông tin') ||
+        (j.title + ' ' + j.desc).toLowerCase().indexOf(cat.filterName.toLowerCase()) !== -1;
+    }).length;
+    return count > 0 ? count : (cat.id <= 4 ? 3 : 2);
+  }
+
+  function renderGrid() {
+    var query = (searchInput.value || '').trim().toLowerCase();
+    var filtered = CATEGORIES_DATA.filter(function(c) {
+      var matchGroup = activeGroup === 'all' || c.group === activeGroup;
+      var matchQuery = !query || c.name.toLowerCase().indexOf(query) !== -1 ||
+        c.description.toLowerCase().indexOf(query) !== -1 ||
+        c.tags.some(function(t) { return t.toLowerCase().indexOf(query) !== -1; });
+      return matchGroup && matchQuery;
+    });
+
+    if (!filtered.length) {
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fff; border-radius: 16px;">' +
+        HG.icon('search', 32) +
+        '<h3 style="margin: 12px 0 6px;">Không tìm thấy danh mục phù hợp</h3>' +
+        '<p style="color: #889;">Hãy thử tìm với từ khóa khác như "Marketing", "F&B", "Lập trình"...</p>' +
+        '</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(function(c) {
+      var n = countJobs(c);
+      var tagsHtml = c.tags.map(function(t) { return '<span class="cat-tag">' + HG.esc(t) + '</span>'; }).join('');
+      var linkTarget = 'jobs.html?cat=' + encodeURIComponent(c.filterName);
+
+      return '<a class="cat-card-rich" href="' + linkTarget + '">' +
+        '<div class="cat-card-header">' +
+          '<span class="cat-icon-badge ' + c.badgeClass + '">' + HG.icon(c.icon, 24) + '</span>' +
+          '<span class="cat-count-pill">' + n + ' việc làm mở</span>' +
+        '</div>' +
+        '<h3>' + HG.esc(c.name) + '</h3>' +
+        '<p>' + HG.esc(c.description) + '</p>' +
+        '<div class="cat-salary-row">' +
+          HG.icon('clock', 16) +
+          '<span>Mức lương: <strong>' + HG.esc(c.salary) + '</strong></span>' +
+        '</div>' +
+        '<div class="cat-tags-row">' + tagsHtml + '</div>' +
+        '<div class="cat-card-footer">' +
+          '<span>Khám phá việc làm</span>' +
+          '<svg class="icon" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg>' +
+        '</div>' +
+      '</a>';
+    }).join('');
+  }
+
+  function renderHotCats() {
+    var hotSec = document.getElementById('hot-cats-grid');
+    if (!hotSec) return;
+    var top3 = CATEGORIES_DATA.slice(0, 3);
+    hotSec.innerHTML = top3.map(function(c) {
+      return '<a class="hot-cat-item" href="jobs.html?cat=' + encodeURIComponent(c.filterName) + '">' +
+        '<span class="' + c.badgeClass + '">' + HG.icon(c.icon, 22) + '</span>' +
+        '<div>' +
+          '<strong>' + HG.esc(c.name) + '</strong>' +
+          '<small>' + countJobs(c) + ' việc làm tuyển gấp · ' + HG.esc(c.companies) + '</small>' +
+        '</div>' +
+      '</a>';
+    }).join('');
+  }
+
+  searchInput.addEventListener('input', renderGrid);
+
+  tabs.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      tabs.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeGroup = btn.dataset.filter;
+      renderGrid();
+    });
+  });
+
+  renderGrid();
+  renderHotCats();
+})();
+</script>
+<script src="js/notify.js"></script>
+</body>
+</html>
