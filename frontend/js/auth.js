@@ -219,26 +219,69 @@
     e.preventDefault();
     var f = e.target;
     if (!validateForm(f)) return;
-    var r = HG.register({
+
+    var payload = {
       role: state.role,
-      full_name: f.full_name.value,
-      email: f.email.value,
+      full_name: f.full_name.value.trim(),
+      email: f.email.value.trim(),
       phone: f.phone.value.replace(/[\s.-]/g, ''),
       password: f.password.value,
-      university: f.university.value.trim(),
-      company_name: f.company_name.value.trim()
-    });
+      university: f.university ? f.university.value.trim() : '',
+      company_name: f.company_name ? f.company_name.value.trim() : ''
+    };
+
+    function finishSignup(userObj) {
+      f.hidden = true;
+      $('#mode-tabs').hidden = $('#role-seg').hidden = true;
+      $('#auth-notice').hidden = true;
+      $('#auth-title').textContent = '';
+      $('#auth-sub').textContent = '';
+      $('#auth-success').hidden = false;
+      HG.flash('Tạo tài khoản thành công! Hãy hoàn thiện hồ sơ của bạn.', 'success');
+      setTimeout(function () {
+        location.href = afterAuthUrl(userObj);
+      }, 1200);
+    }
+
+    if (window.HGApi) {
+      window.HGApi.register(payload)
+        .then(function (apiRes) {
+          var createdUser = (apiRes && apiRes.user) || { id: Date.now(), role: state.role, full_name: payload.full_name, email: payload.email };
+          var normRole = createdUser.role === 'recruiter' ? 'employer' : (createdUser.role || state.role);
+          createdUser.role = normRole;
+          HG.write('hg_session', createdUser.id);
+          return HG.syncFromBackend().then(function () {
+            finishSignup(createdUser);
+          });
+        })
+        .catch(function (err) {
+          if (err && (err.status === 400 || err.status === 409 || err.status === 422)) {
+            var msg = err.message || 'Thông tin đăng ký đã tồn tại hoặc không hợp lệ.';
+            setError(f.email, msg);
+            if (HG.toast) HG.toast(msg, 'error');
+            f.email.focus();
+            return;
+          }
+          var r = HG.register(payload);
+          if (r.error) {
+            setError(f.email, r.error);
+            if (HG.toast) HG.toast(r.error, 'error');
+            f.email.focus();
+            return;
+          }
+          finishSignup(r.user);
+        });
+      return;
+    }
+
+    var r = HG.register(payload);
     if (r.error) {
       setError(f.email, r.error);
       if (HG.toast) HG.toast(r.error, 'error');
       f.email.focus();
       return;
     }
-    f.hidden = true; $('#mode-tabs').hidden = $('#role-seg').hidden = true; $('#auth-notice').hidden = true;
-    $('#auth-title').textContent = ''; $('#auth-sub').textContent = '';
-    $('#auth-success').hidden = false;
-    HG.flash('Tạo tài khoản thành công! Hãy hoàn thiện hồ sơ của bạn.', 'success');
-    setTimeout(function () { location.href = afterAuthUrl(r.user); }, 1400);
+    finishSignup(r.user);
   });
 
   $('#form-signin').insertAdjacentHTML('beforeend', '<p class="admin-hint">' + HG.icon('shield', 14) + ' Quản trị viên (Admin gốc hoặc tài khoản được cấp quyền) đăng nhập ở đây bằng email &amp; mật khẩu được cấp, hệ thống sẽ tự chuyển tới không gian quản trị.</p>');

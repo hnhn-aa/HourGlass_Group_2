@@ -89,10 +89,15 @@
       if (rs[r.id]) Object.assign(r, rs[r.id]);
     });
 
-    /* 5. Cập nhật danh sách thẻ việc làm công khai window.HG_JOBS */
-    window.HG_JOBS = jobs
+    /* 5. Cập nhật danh sách thẻ việc làm công khai window.HG_JOBS (giữ nguyên tham chiếu mảng) */
+    var mappedJobs = jobs
       .filter(function (j) { return j.status === 'approved'; })
       .map(HG.toJob);
+    if (Array.isArray(window.HG_JOBS)) {
+      replaceArray(window.HG_JOBS, mappedJobs);
+    } else {
+      window.HG_JOBS = mappedJobs;
+    }
   }
 
   function applyBootstrapPayload(data) {
@@ -174,6 +179,10 @@
         if (data && data.users) {
           HG.write(CACHE_KEY, data);
           applyBootstrapPayload(data);
+          var catInput = document.getElementById('cat-search-input');
+          if (catInput) {
+            catInput.dispatchEvent(new Event('input'));
+          }
           document.dispatchEvent(new CustomEvent('hg:synced', { detail: data }));
         }
         return data;

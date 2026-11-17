@@ -67,4 +67,23 @@
 
   renderJobDetail();
   document.addEventListener('hg:synced', renderJobDetail);
+
+  /* Gọi trực tiếp API chi tiết công việc GET /api/jobs/{id} qua api.js */
+  if (id && window.HGApi && typeof window.HGApi.getJobDetail === 'function') {
+    window.HGApi.getJobDetail(id)
+      .then(function (res) {
+        var apiJob = res && (res.job || (res.id ? res : null));
+        if (apiJob && apiJob.id) {
+          if (!apiJob.employer_id && apiJob.recruiter_id) apiJob.employer_id = apiJob.recruiter_id;
+          var idx = jobs.findIndex(function (j) { return j.id === apiJob.id; });
+          if (idx !== -1) {
+            Object.assign(jobs[idx], apiJob);
+          } else {
+            jobs.push(apiJob);
+          }
+          renderJobDetail();
+        }
+      })
+      .catch(function () {});
+  }
 })();

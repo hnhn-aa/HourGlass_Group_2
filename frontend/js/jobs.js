@@ -205,12 +205,25 @@
     });
   }
 
-  /* Tự động cập nhật danh sách khi adapter.js đồng bộ từ Backend API */
+  /* Tự động cập nhật danh sách khi adapter.js đồng bộ hoặc gọi trực tiếp qua api.js */
   document.addEventListener('hg:synced', function () {
     all = window.HG_JOBS || [];
     updateCounts();
     render();
   });
+
+  if (window.HGApi && typeof window.HGApi.getJobs === 'function') {
+    window.HGApi.getJobs({ status: 'approved', limit: 100 })
+      .then(function (res) {
+        if (res && Array.isArray(res.jobs) && res.jobs.length && window.HG && typeof window.HG.toJob === 'function') {
+          all = res.jobs.map(window.HG.toJob);
+          window.HG_JOBS = all;
+          updateCounts();
+          render();
+        }
+      })
+      .catch(function () {});
+  }
 
   render();
 

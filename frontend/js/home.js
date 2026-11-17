@@ -106,13 +106,37 @@
     });
   }
 
-  /* ---- Tự động cập nhật khi adapter.js đồng bộ xong dữ liệu từ Backend API ---- */
+  /* ---- Tự động cập nhật khi adapter.js đồng bộ xong hoặc gọi trực tiếp qua api.js ---- */
   document.addEventListener('hg:synced', function () {
     all = window.HG_JOBS || [];
     renderCats();
     renderUrgent();
     renderHomeJobs(activeFilter);
   });
+
+  if (window.HGApi && typeof window.HGApi.getCategories === 'function') {
+    Promise.all([
+      window.HGApi.getCategories().catch(function () { return null; }),
+      window.HGApi.getJobs({ status: 'approved', limit: 50 }).catch(function () { return null; })
+    ]).then(function (results) {
+      var catRes = results[0];
+      var jobRes = results[1];
+      if (catRes && Array.isArray(catRes.categories) && catRes.categories.length) {
+        HOME_CATS = catRes.categories.slice(0, 6).map(function (c) {
+          return { name: c.name, label: c.name };
+        });
+      }
+      if (jobRes && Array.isArray(jobRes.jobs) && jobRes.jobs.length && window.HG && typeof window.HG.toJob === 'function') {
+        all = jobRes.jobs.map(window.HG.toJob);
+        window.HG_JOBS = all;
+      } else {
+        all = window.HG_JOBS || [];
+      }
+      renderCats();
+      renderUrgent();
+      renderHomeJobs(activeFilter);
+    });
+  }
 
   var heroQ = document.querySelector('input[name="q"]');
   if (heroQ) HG.attachSuggest(heroQ, function () { if (heroQ.form && heroQ.form.requestSubmit) heroQ.form.requestSubmit(); });

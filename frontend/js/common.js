@@ -1,6 +1,6 @@
-/* Tiện ích dùng chung: nạp api-client.js, formatVND, Toast, đọc/ghi localStorage (nạp sau main.js) */
+/* Tiện ích dùng chung: nạp api.js (module gọi API dùng chung), formatVND, Toast, đọc/ghi localStorage (nạp sau main.js) */
 if (!window.HGApi && typeof document !== 'undefined') {
-  document.write('<script src="js/api-client.js"><\/script>');
+  document.write('<script src="js/api.js"><\/script>');
 }
 (function () {
   'use strict';
