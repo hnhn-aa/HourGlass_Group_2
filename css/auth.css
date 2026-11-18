@@ -122,3 +122,6 @@
   .auth-card { padding: var(--space-5) var(--space-4); border-radius: 20px; }
   .field-row { grid-template-columns: 1fr; }
 }
+
+.admin-hint { display: flex; gap: 8px; align-items: flex-start; margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: #f3f5ff; color: #5a6a99; font-size: 12px; line-height: 1.55; }
+.admin-hint .icon { flex: none; margin-top: 2px; }

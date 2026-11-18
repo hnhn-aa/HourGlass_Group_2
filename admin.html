@@ -15,7 +15,7 @@
 <aside class="dash-sidebar" id="dash-sidebar">
 <div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
 <div class="role-label">QUẢN TRỊ HỆ THỐNG</div>
-<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan hệ thống</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span>Quản lý sinh viên</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Quản lý nhà tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Quản lý việc làm</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-chart"/></svg><span>Thống kê &amp; báo cáo</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span>Kiểm duyệt tin đăng</span></button></nav>
+<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan hệ thống</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span>Quản lý sinh viên</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Quản lý nhà tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Quản lý việc làm</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-chart"/></svg><span>Thống kê &amp; báo cáo</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span>Kiểm duyệt tin đăng</span></button><button data-tab="6"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Danh mục ngành nghề</span></button><button data-tab="8"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Đánh giá & danh sách đen</span></button><button data-tab="9"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bell"/></svg><span>Hộp thư & thông báo</span></button><button data-tab="10"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Nhật ký & xuất dữ liệu</span></button><button data-tab="7"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-user"/></svg><span>Phân quyền quản trị</span></button></nav>
 <div class="sidebar-help"><span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span><strong>Cần hỗ trợ?</strong><small>Đội ngũ HourGlass luôn sẵn sàng.</small><button type="button" onclick="location.href='about.html#contact'">Liên hệ ngay</button></div>
 </aside>
 <div class="dash-backdrop" id="dash-backdrop" hidden></div>
@@ -58,19 +58,11 @@
     <div class="dash-grid admin-grid">
       <section class="panel">
         <div class="panel-title">
-          <h3>Tăng trưởng người dùng</h3>
-          <button type="button">Theo tháng <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <h3>Người dùng 6 tháng gần nhất</h3>
+          <small style="color:#8a94a8">Tích lũy · Sinh viên / Nhà tuyển dụng</small>
         </div>
         <div class="admin-chart">
           <div class="bar-set">
-            <span><i style="height:35%"></i><b style="height:25.2%"></b></span>
-            <span><i style="height:48%"></i><b style="height:34.6%"></b></span>
-            <span><i style="height:44%"></i><b style="height:31.7%"></b></span>
-            <span><i style="height:61%"></i><b style="height:43.9%"></b></span>
-            <span><i style="height:70%"></i><b style="height:50.4%"></b></span>
-            <span><i style="height:78%"></i><b style="height:56.2%"></b></span>
-            <span><i style="height:88%"></i><b style="height:63.4%"></b></span>
-            <span><i style="height:96%"></i><b style="height:69.1%"></b></span>
           </div>
           <div class="admin-legend">
             <span><i></i>Sinh viên</span>
@@ -211,15 +203,15 @@
     <div class="stats-grid four" style="margin-bottom: 24px;">
       <div class="stat-card">
         <span class="stat-icon" style="color:#22B8A7;background:#22B8A716"><svg class="icon" width="20" height="20"><use href="#i-check"/></svg></span>
-        <div><small>Tỷ lệ duyệt tin</small><strong>92%</strong><em>Duyệt trong ngày</em></div>
+        <div><small>Tỷ lệ duyệt tin</small><strong id="stat-approve-rate">—</strong><em>Trên tin đã xử lý</em></div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" style="color:#4F7DFF;background:#4F7DFF16"><svg class="icon" width="20" height="20"><use href="#i-clock"/></svg></span>
-        <div><small>Thời gian phản hồi</small><strong>2.4h</strong><em>Trung bình</em></div>
+        <div><small>Đơn ứng tuyển</small><strong id="stat-apps-total">0</strong><em>Toàn hệ thống</em></div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" style="color:#A78BFA;background:#A78BFA16"><svg class="icon" width="20" height="20"><use href="#i-briefcase"/></svg></span>
-        <div><small>Ngành hot nhất</small><strong>F&amp;B</strong><em>38% lượng tin</em></div>
+        <div><small>Ngành hot nhất</small><strong id="stat-hot-cat">—</strong><em id="stat-hot-sub"></em></div>
       </div>
       <div class="stat-card">
         <span class="stat-icon" style="color:#FF8EC7;background:#FF8EC716"><svg class="icon" width="20" height="20"><use href="#i-shield"/></svg></span>
@@ -227,22 +219,13 @@
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">
-        <h3>Danh sách báo cáo từ người dùng</h3>
-      </div>
-      <div class="manage-table">
-        <div class="table-head">
-          <span>Loại báo cáo</span>
-          <span>Lý do phản ánh</span>
-          <span>Đối tượng</span>
-          <span>Thời gian</span>
-          <span>Trạng thái</span>
-          <span>Thao tác</span>
-        </div>
-        <div id="admin-reports-table"></div>
-      </div>
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-title"><h3>Tin tuyển dụng theo ngành nghề</h3></div>
+      <div id="admin-cat-chart" class="hbars"></div>
     </div>
+
+    <div class="panel-title" style="margin:0 0 12px"><h3>Trung tâm khiếu nại & báo cáo</h3></div>
+    <div id="adm-reports"></div>
   </div>
 
   <!-- TAB 5: KIỂM DUYỆT TIN ĐĂNG -->
@@ -260,7 +243,7 @@
         <button class="dash-pill active" data-mod-filter="pending">Chờ duyệt gấp</button>
         <button class="dash-pill" data-mod-filter="all">Tất cả</button>
         <button class="dash-pill" data-mod-filter="approved">Đã duyệt</button>
-        <button class="dash-pill" data-mod-filter="rejected">Đã từ chối</button>
+        <button class="dash-pill" data-mod-filter="rejected">Từ chối / Khóa</button>
       </div>
     </div>
 
@@ -280,8 +263,45 @@
   </div>
 
   <div id="dash-placeholder" hidden></div>
+
+  <!-- TAB 6: DANH MỤC NGÀNH NGHỀ (CRUD) -->
+  <div class="dash-view" data-view="6" hidden>
+    <div class="dash-welcome"><div><span>CẤU HÌNH HỆ THỐNG</span><h1>Danh mục ngành nghề</h1><p>Thêm, sửa, xóa các ngành nghề dùng để phân loại tin tuyển dụng.</p></div>
+      <button class="primary-btn" type="button" id="cat-add-btn"><svg class="icon" width="20" height="20"><use href="#i-plus"/></svg> Thêm danh mục</button></div>
+    <div class="dash-filter-bar"><input class="dash-search-input" id="cat-search" placeholder="Tìm theo tên danh mục..."></div>
+    <div class="panel"><div class="manage-table"><div class="table-head cat-grid"><span>Tên danh mục</span><span>Mô tả</span><span>Số tin</span><span>Cập nhật</span><span>Thao tác</span></div><div id="cat-rows"></div></div></div>
+  </div>
+
+  <!-- TAB 7: PHÂN QUYỀN QUẢN TRỊ -->
+  <div class="dash-view" data-view="7" hidden>
+    <div class="dash-welcome"><div><span>BẢO MẬT & QUYỀN TRUY CẬP</span><h1>Phân quyền quản trị</h1><p>Admin gốc có thể cấp hoặc thu hồi quyền quản trị viên cho các tài khoản khác.</p></div></div>
+    <div id="role-banner"></div>
+    <div class="dash-filter-bar"><div class="dash-pills" id="role-filter-tabs"><button class="dash-pill active" data-role-filter="all">Tất cả</button><button class="dash-pill" data-role-filter="admin">Quản trị viên</button><button class="dash-pill" data-role-filter="employer">Nhà tuyển dụng</button><button class="dash-pill" data-role-filter="student">Sinh viên</button></div>
+      <input class="dash-search-input" id="role-search" placeholder="Tìm theo tên hoặc email..."></div>
+    <div class="panel"><div class="manage-table"><div class="table-head role-grid"><span>Tài khoản</span><span>Email</span><span>Vai trò</span><span>Trạng thái</span><span>Thao tác</span></div><div id="role-rows"></div></div></div>
+  </div>
+
+  <div class="dash-view" data-view="8" hidden>
+    <div class="dash-welcome"><div><span>UY TÍN & AN TOÀN</span><h1>Đánh giá & danh sách đen</h1><p>Ẩn đánh giá vi phạm, theo dõi danh sách đen của nhà tuyển dụng và hạn chế tài khoản toàn hệ thống.</p></div></div>
+    <div id="adm-trust"></div>
+  </div>
+
+  <div class="dash-view" data-view="9" hidden>
+    <div class="dash-welcome"><div><span>HỖ TRỢ NGƯỜI DÙNG</span><h1>Hộp thư & thông báo</h1><p>Phản hồi tin nhắn hỗ trợ, gửi thông báo hệ thống và xem danh sách đăng ký bản tin.</p></div></div>
+    <div id="adm-inbox"></div>
+  </div>
+
+  <div class="dash-view" data-view="10" hidden>
+    <div class="dash-welcome"><div><span>GIÁM SÁT HỆ THỐNG</span><h1>Nhật ký & xuất dữ liệu</h1><p>Mọi thao tác của quản trị viên được ghi lại; xuất dữ liệu ra CSV để lưu trữ.</p></div></div>
+    <div id="adm-audit"></div>
+  </div>
 </main>
 </div></div>
-<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/dashboard.js"></script>
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/social.js"></script><script src="js/modal.js"></script><script src="js/dashboard.js"></script>
+<script src="js/admin-extra.js"></script>
+<script src="js/portal-admin.js"></script>
+<script src="js/portal-extras.js"></script>
+<script src="js/public-extras.js"></script>
+<script src="js/notify.js"></script>
 </body>
 </html>

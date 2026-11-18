@@ -176,6 +176,7 @@
     if (!validateForm(f)) return;
     var r = HG.login(f.email.value, f.password.value, state.role);
     if (r.error) { showAlert(f, r.error); return; }
+    HG.flash('Chào mừng trở lại, ' + r.user.full_name.trim().split(/\s+/).pop() + '!', 'success');
     location.href = afterAuthUrl(r.user);
   });
 
@@ -191,8 +192,11 @@
     f.hidden = true; $('#mode-tabs').hidden = $('#role-seg').hidden = true; $('#auth-notice').hidden = true;
     $('#auth-title').textContent = ''; $('#auth-sub').textContent = '';
     $('#auth-success').hidden = false;
+    HG.flash('Tạo tài khoản thành công! Hãy hoàn thiện hồ sơ của bạn.', 'success');
     setTimeout(function () { location.href = afterAuthUrl(r.user); }, 1400);
   });
 
+  /* Gợi ý cho quản trị viên: đăng nhập được ở mọi tab và tự chuyển tới không gian quản trị */
+  $('#form-signin').insertAdjacentHTML('beforeend', '<p class="admin-hint">' + HG.icon('shield', 14) + ' Quản trị viên (Admin gốc hoặc tài khoản được cấp quyền) đăng nhập ở đây bằng email &amp; mật khẩu được cấp, hệ thống sẽ tự chuyển tới không gian quản trị.</p>');
   render();
 })();

@@ -141,11 +141,16 @@
       onMount: function (api) {
         api.box.addEventListener('submit', function (e) {
           e.preventDefault();
-          var r = HG.apply(job.id, Number(e.target.cv ? e.target.cv.value : 0) || null);
-          if (r.error) { api.render(form(r.error)); return; }
+          var cvVal = Number(e.target.cv ? e.target.cv.value : 0) || null, cover = e.target.cover ? e.target.cover.value.trim() : '';
+          if (cover.length > 500) { api.render(form('Lời nhắn tối đa 500 ký tự.')); return; }
+          HG.busy(e.target.querySelector('button'), function () {
+          var r = HG.apply(job.id, cvVal, cover);
+          if (r.error) { api.render(form(r.error)); HG.toast(r.error, 'error'); return; }
+          HG.toast('Đã gửi hồ sơ ứng tuyển tới ' + job.company + '.', 'success');
           api.render('<div class="modal-success"><span>' + I('check', 34) + '</span><h2>Ứng tuyển thành công!</h2>' +
             '<p>Hồ sơ của bạn đã được gửi tới <strong>' + esc(job.company) + '</strong>. Bạn có thể theo dõi tiến độ trong mục "Đơn ứng tuyển" của Dashboard.</p>' +
             '<div style="display:flex; justify-content:center; gap:10px;"><button class="secondary-btn" data-close>Đóng</button><a class="primary-btn" href="student.html?tab=4">Xem đơn ứng tuyển ' + I('arrow') + '</a></div></div>');
+          }, 800);
         });
       }
     });

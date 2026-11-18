@@ -15,7 +15,7 @@
 <aside class="dash-sidebar" id="dash-sidebar">
 <div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
 <div class="role-label">KHÔNG GIAN SINH VIÊN</div>
-<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Hồ sơ cá nhân</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>CV của tôi</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bookmark"/></svg><span>Việc làm yêu thích</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Đơn ứng tuyển</span><b>3</b></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-calendar"/></svg><span>Lịch làm việc</span></button><button data-tab="6"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-settings"/></svg><span>Cài đặt tài khoản</span></button></nav>
+<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Hồ sơ cá nhân</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>CV của tôi</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bookmark"/></svg><span>Việc làm yêu thích</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Đơn ứng tuyển</span><b>3</b></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-calendar"/></svg><span>Lịch làm việc</span></button><button data-tab="7"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span>Yêu cầu & Đánh giá</span></button><button data-tab="6"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-settings"/></svg><span>Cài đặt tài khoản</span></button></nav>
 <div class="sidebar-help"><span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span><strong>Cần hỗ trợ?</strong><small>Đội ngũ HourGlass luôn sẵn sàng.</small><button type="button" onclick="location.href='about.html#contact'">Liên hệ ngay</button></div>
 </aside>
 <div class="dash-backdrop" id="dash-backdrop" hidden></div>
@@ -153,6 +153,18 @@
         </div>
       </div>
 
+      <div class="form-section">
+        <h3>Kinh nghiệm làm việc</h3>
+        <div id="student-exp-list"></div>
+        <div class="exp-add-grid">
+          <input id="exp-title" placeholder="Vị trí (VD: Phục vụ bàn)" maxlength="60">
+          <input id="exp-company" placeholder="Nơi làm việc" maxlength="60">
+          <input id="exp-period" placeholder="Thời gian (VD: 06/2025 – 09/2025)" maxlength="40">
+          <button type="button" class="secondary-btn small" id="exp-add-btn">Thêm kinh nghiệm</button>
+        </div>
+        <small class="field-err" id="exp-err"></small>
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="primary-btn">Lưu thông tin hồ sơ <svg class="icon" width="18" height="18"><use href="#i-check"/></svg></button>
       </div>
@@ -227,11 +239,10 @@
     <div class="dash-filter-bar">
       <div class="dash-pills" id="app-filter-tabs">
         <button class="dash-pill active" data-app-filter="all">Tất cả</button>
-        <button class="dash-pill" data-app-filter="submitted">Đã nộp</button>
-        <button class="dash-pill" data-app-filter="reviewing">Đang xem xét</button>
-        <button class="dash-pill" data-app-filter="interview">Mời phỏng vấn</button>
-        <button class="dash-pill" data-app-filter="accepted">Đã nhận việc</button>
-        <button class="dash-pill" data-app-filter="rejected">Từ chối</button>
+        <button class="dash-pill" data-app-filter="pending">Đang chờ duyệt</button>
+        <button class="dash-pill" data-app-filter="received">Đã tiếp nhận</button>
+        <button class="dash-pill" data-app-filter="accepted">Đã trúng tuyển</button>
+        <button class="dash-pill" data-app-filter="rejected">Bị từ chối</button>
       </div>
     </div>
 
@@ -248,12 +259,7 @@
       </div>
     </div>
 
-    <div class="panel" style="margin-bottom: 24px;">
-      <div class="panel-title">
-        <h3>Lịch tuần hiện tại</h3>
-      </div>
-      <div class="calendar-grid-week" id="calendar-week-grid"></div>
-    </div>
+    <div class="panel sched-panel" id="sched-panel" style="margin-bottom: 24px;"></div>
 
     <div class="panel">
       <div class="panel-title">
@@ -282,6 +288,15 @@
         </table>
       </div>
     </div>
+
+    <div class="panel" id="avail-history" style="margin-top: 24px;"></div>
+  </div>
+
+
+  <!-- TAB 7: YÊU CẦU · ĐÁNH GIÁ · KHIẾU NẠI -->
+  <div class="dash-view" data-view="7" hidden>
+    <div class="dash-welcome"><div><span>HỖ TRỢ & PHẢN HỒI</span><h1>Yêu cầu, đánh giá & khiếu nại</h1><p>Theo dõi yêu cầu nghỉ việc / đổi ca, đánh giá nhà tuyển dụng và gửi khiếu nại khi cần.</p></div></div>
+    <div id="stu-hub"></div>
   </div>
 
   <!-- TAB 6: CÀI ĐẶT TÀI KHOẢN -->
@@ -299,7 +314,7 @@
         <h3 style="font-size: var(--fs-h4); margin-bottom: 6px;">Đổi mật khẩu</h3>
         <div class="profile-field">
           <label>Mật khẩu hiện tại</label>
-          <input type="password" required placeholder="Nhập mật khẩu hiện tại" value="123456">
+          <input type="password" required placeholder="Nhập mật khẩu hiện tại">
         </div>
         <div class="profile-field">
           <label>Mật khẩu mới</label>
@@ -338,6 +353,13 @@
   <div id="dash-placeholder" hidden></div>
 </main>
 </div></div>
-<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/dashboard.js"></script>
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/social.js"></script><script src="js/modal.js"></script><script src="js/validators.js"></script><script src="js/dashboard.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/profile-extra.js"></script>
+<script src="js/portal-common.js"></script>
+<script src="js/portal-student.js"></script>
+<script src="js/portal-extras.js"></script>
+<script src="js/public-extras.js"></script>
+<script src="js/notify.js"></script>
 </body>
 </html>

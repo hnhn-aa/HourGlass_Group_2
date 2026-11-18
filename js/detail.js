@@ -3,6 +3,12 @@
   'use strict';
   var id = Number(new URLSearchParams(location.search).get('id'));
   var raw = jobs.find(function (j) { return j.id === id; }) || jobs.find(function (j) { return j.status === 'approved'; });
+  /* Tin chưa duyệt / bị khóa / hết hạn / nháp chỉ chủ tin và admin mới xem được */
+  (function () {
+    var who = HG.user(), ep0 = HG.employerProfile(raw.employer_id);
+    var allowed = raw.status === 'approved' || (who && (who.role === 'admin' || (ep0 && ep0.user_id === who.id)));
+    if (!allowed) { HG.flash('Tin tuyển dụng này không còn hiển thị.', 'info'); location.replace('jobs.html'); }
+  })();
   var job = HG.toJob(raw), E = HG.esc;
   HG.currentJob = job;
   var emp = employer_profiles.find(function (e) { return e.id === raw.employer_id; });
@@ -36,8 +42,13 @@
     label.textContent = s ? 'Đã lưu việc làm' : 'Lưu việc làm';
   }
   btn.addEventListener('click', function () {
-    var isS = HG.toggleSaved(job.id);
-    paint();
+    var who = HG.user();
+    if (!who || who.role !== 'student') { HG.toast(who ? 'Chỉ tài khoản sinh viên mới lưu được việc làm.' : 'Hãy đăng nhập tài khoản sinh viên để lưu việc làm.', 'info'); return; }
+    HG.busy(btn, function () {
+      var isS = HG.toggleSaved(job.id);
+      paint();
+      HG.toast(isS ? 'Đã lưu việc làm vào mục yêu thích.' : 'Đã bỏ lưu việc làm.', isS ? 'success' : 'info');
+    }, 400);
   });
   paint();
 

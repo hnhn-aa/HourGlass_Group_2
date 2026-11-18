@@ -11,12 +11,7 @@
 </head>
 <body>
 <script src="js/icons.js"></script>
-<header class="site-header"><div class="container header-inner">
-<div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
-<nav><a href="index.html">Trang chủ</a><a href="jobs.html" class=active>Tìm việc</a><a href="categories.html">Danh mục</a><a href="about.html">Giới thiệu</a><a class="nav-auth" href="auth.html?mode=signin">Đăng nhập</a><a class="nav-auth" href="auth.html?mode=signup">Đăng ký</a></nav>
-<div class="header-actions" id="header-actions"><a class="text-btn" href="auth.html?mode=signin">Đăng nhập</a><a class="primary-btn small" href="auth.html?mode=signup">Đăng ký <svg class="icon" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
-<button class="mobile-menu" id="menu-toggle" aria-label="Menu"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-menu"/></svg></button>
-</div></header>
+<div id="site-header"></div>
 <main class="page-bg">
 <section class="jobs-hero"><div class="container">
 <span class="kicker">CƠ HỘI ĐANG CHỜ BẠN</span>
@@ -37,6 +32,8 @@
   </div>
 </div>
 <div class="filter-group"><h4>Danh mục</h4><label class="check-row"><input type="checkbox" data-filter="cat" value="Phục vụ"><span></span> Phục vụ<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Bán hàng"><span></span> Bán hàng<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Marketing"><span></span> Marketing<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="cat" value="Công nghệ thông tin"><span></span> Công nghệ thông tin<small data-count></small></label></div>
+<div class="filter-group"><h4>Khu vực</h4><label class="check-row"><input type="checkbox" data-filter="area" value="TP. Hồ Chí Minh"><span></span> TP. Hồ Chí Minh<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="area" value="Hà Nội"><span></span> Hà Nội<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="area" value="Đà Nẵng"><span></span> Đà Nẵng<small data-count></small></label></div>
+<div class="filter-group"><h4>Ca làm việc</h4><label class="check-row"><input type="checkbox" data-filter="shift" value="morning"><span></span> Ca sáng<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="afternoon"><span></span> Ca chiều<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="evening"><span></span> Ca tối<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="shift" value="flexible"><span></span> Linh hoạt<small data-count></small></label></div>
 <div class="filter-group"><h4>Hình thức</h4><label class="check-row"><input type="checkbox" data-filter="type" value="Part-time"><span></span> Part-time<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="type" value="Toàn thời gian"><span></span> Toàn thời gian<small data-count></small></label><label class="check-row"><input type="checkbox" data-filter="type" value="Thực tập"><span></span> Thực tập<small data-count></small></label></div>
 <div class="filter-group"><h4>Làm việc từ xa</h4><label class="check-row"><input type="checkbox" id="remote"><span></span> Remote</label></div>
 <div class="filter-group"><h4>Mức lương tối thiểu</h4><input type="range" id="salary-range" min="20" max="60" value="20" step="5"><div class="range-label"><span id="salary-val">Từ 20K/giờ</span><span>60K+/giờ</span></div></div>
@@ -45,22 +42,25 @@
 <div class="results">
 <div class="results-head"><div><strong id="result-count"></strong><span>Cập nhật mới nhất hôm nay</span></div>
 <button class="filter-mobile" id="open-filter-mobile" type="button"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-filter"/></svg> Bộ lọc</button>
-<select id="sort-select"><option value="newest">Mới nhất</option><option value="salary">Lương cao nhất</option><option value="title">Theo tên A-Z</option></select></div>
+<select id="sort-select"><option value="newest">Mới nhất</option><option value="salary">Lương cao nhất</option><option value="urgent">Sắp hết hạn</option><option value="title">Theo tên A-Z</option></select></div>
+<!-- Quick filter tabs by shift/area -->
+<div class="jobs-quick-tabs" id="jobs-quick-tabs">
+  <button class="jqt-btn active" data-shift="all">Tất cả ca</button>
+  <button class="jqt-btn" data-shift="morning">🌅 Ca sáng</button>
+  <button class="jqt-btn" data-shift="afternoon">☀️ Ca chiều</button>
+  <button class="jqt-btn" data-shift="evening">🌙 Ca tối</button>
+  <button class="jqt-btn" data-shift="flexible">⏰ Ca linh hoạt</button>
+  <button class="jqt-btn" data-shift="remote">🏠 Remote</button>
+</div>
 <div class="job-list-grid" id="job-list"></div>
 <div class="empty-state" id="empty-state" hidden><span><svg class="icon" width="30" height="30" aria-hidden="true"><use href="#i-search"/></svg></span><h3>Chưa tìm thấy công việc phù hợp</h3><p>Hãy thử một từ khóa hoặc bộ lọc khác nhé.</p></div>
-<button class="load-more" id="load-more" type="button">Xem thêm công việc <svg class="icon" width="17" height="17" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+<!-- Pagination -->
+<div class="pagination-row" id="pagination-row"></div>
 </div></section>
 </main>
-<footer>
-<div class="container footer-grid">
-<div><a class="logo logo-inverse" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a><p>Chủ động thời gian – Kiến tạo tương lai.</p><div class="socials"><span>f</span><span>in</span><span>ig</span></div></div>
-<div><strong>Khám phá</strong><a href="jobs.html">Tìm việc làm</a><a href="categories.html">Danh mục</a><a href="jobs.html">Công ty nổi bật</a></div>
-<div><strong>Dành cho bạn</strong><a href="student.html">Sinh viên</a><a href="employer.html">Nhà tuyển dụng</a><a href="about.html">Về HourGlass</a></div>
-<div><strong>HourGlass</strong><a href="about.html">Về chúng tôi</a><a href="about.html#contact">Liên hệ</a><a href="about.html#contact">Chính sách bảo mật</a></div>
-<div class="newsletter"><strong>Đừng bỏ lỡ cơ hội mới</strong><p>Nhận việc làm phù hợp mỗi tuần.</p><label><input placeholder="Email của bạn"><button><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button></label></div>
-</div>
-<div class="container footer-bottom"><span>© 2025 HourGlass. Made for students, with care.</span><a href="admin.html">Cổng quản trị</a></div>
-</footer>
-<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/jobs.js"></script>
+<div id="site-footer"></div>
+<script src="js/layout.js"></script><script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/social.js"></script><script src="js/modal.js"></script><script src="js/jobs.js"></script>
+<script src="js/public-extras.js"></script>
+<script src="js/notify.js"></script>
 </body>
 </html>

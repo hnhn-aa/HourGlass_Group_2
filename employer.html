@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -15,7 +15,7 @@
 <aside class="dash-sidebar" id="dash-sidebar">
 <div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
 <div class="role-label">TRUNG TÂM TUYỂN DỤNG</div>
-<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Hồ sơ công ty</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Quản lý tin tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg><span>Đăng tin tuyển dụng</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span>Quản lý ứng viên</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-settings"/></svg><span>Cài đặt tài khoản</span></button></nav>
+<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span>Tổng quan</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Hồ sơ công ty</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span>Quản lý tin tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg><span>Đăng tin tuyển dụng</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span>Quản lý ứng viên</span></button><button data-tab="6"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span>Nhân viên & Yêu cầu</span></button><button data-tab="7"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span>Danh sách đen</span></button><button data-tab="8"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Đánh giá & Khiếu nại</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-settings"/></svg><span>Cài đặt tài khoản</span></button></nav>
 <div class="sidebar-help"><span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span><strong>Cần hỗ trợ?</strong><small>Đội ngũ HourGlass luôn sẵn sàng.</small><button type="button" onclick="location.href='about.html#contact'">Liên hệ ngay</button></div>
 </aside>
 <div class="dash-backdrop" id="dash-backdrop" hidden></div>
@@ -186,8 +186,10 @@
     <div class="dash-filter-bar">
       <div class="dash-pills" id="emp-job-filter-tabs">
         <button class="dash-pill active" data-job-filter="all">Tất cả</button>
-        <button class="dash-pill" data-job-filter="approved">Đang hoạt động</button>
+        <button class="dash-pill" data-job-filter="draft">Nháp</button>
         <button class="dash-pill" data-job-filter="pending">Chờ kiểm duyệt</button>
+        <button class="dash-pill" data-job-filter="approved">Đã đăng</button>
+        <button class="dash-pill" data-job-filter="expired">Hết hạn</button>
         <button class="dash-pill" data-job-filter="rejected">Bị từ chối</button>
       </div>
       <input class="dash-search-input" id="emp-job-search" placeholder="Tìm theo tên vị trí tuyển dụng...">
@@ -229,51 +231,140 @@
         </div>
       </div>
 
-      <form class="panel post-form" id="post-form">
-        <div class="form-section">
-          <h3>Thông tin cơ bản</h3>
-          <div class="form-grid">
-            <label class="full-field">Tên công việc
-              <input required placeholder="Ví dụ: Trợ lý Marketing Part-time hoặc Nhân viên pha chế">
-            </label>
-            <label>Danh mục
-              <select></select>
-            </label>
-            <label>Hình thức làm việc
-              <select></select>
-            </label>
-            <label class="full-field">Mô tả công việc
-              <textarea rows="5" required placeholder="Mô tả trách nhiệm và công việc hàng ngày..."></textarea>
-            </label>
-            <label class="full-field">Yêu cầu ứng viên
-              <textarea rows="4" required placeholder="Kỹ năng, tinh thần trách nhiệm và phẩm chất cần có..."></textarea>
-            </label>
+      <div class="post-form-layout">
+        <!-- Live Preview Card -->
+        <div class="post-preview-panel">
+          <div class="panel" style="position:sticky; top:90px;">
+            <h3 style="font-size:var(--fs-body-sm); margin-bottom:14px; color:#8a94a8; font-weight:700; letter-spacing:0.05em;">XEM TRƯỚC BÀI ĐĂNG</h3>
+            <div class="job-card" style="cursor:default; pointer-events:none;" id="post-preview-card">
+              <div class="job-top">
+                <span class="company-logo" id="preview-logo" style="background:#4F7DFF; min-width:40px;">C</span>
+                <span style="font-size:10px; background:#eef2ff; color:#4f7dff; padding:3px 8px; border-radius:20px; font-weight:700;" id="preview-cat">Danh mục</span>
+              </div>
+              <div class="job-tags" style="margin-top:10px;"><span id="preview-type-tag">Hình thức</span></div>
+              <h3 id="preview-title" style="margin:8px 0 2px;">Tên công việc</h3>
+              <p class="company-name" id="preview-company"></p>
+              <div class="job-meta">
+                <span><svg class="icon" width="14" height="14"><use href="#i-pin"/></svg> <span id="preview-location">Địa điểm</span></span>
+                <span><svg class="icon" width="14" height="14"><use href="#i-clock"/></svg> <span id="preview-shift">Ca làm việc</span></span>
+              </div>
+              <div class="job-bottom">
+                <strong id="preview-salary">Mức lương</strong>
+                <small id="preview-deadline" style="color:#8a94a8;"></small>
+              </div>
+              <div id="preview-img-area" hidden style="margin-top:12px; border-radius:10px; overflow:hidden; max-height:140px;">
+                <img id="preview-img" src="" alt="Banner" style="width:100%; object-fit:cover; height:140px;">
+              </div>
+            </div>
+            <p style="font-size:var(--fs-xs); color:#a0a7b7; margin-top:12px; text-align:center;">Bài đăng sẽ hiển thị như trên khi được duyệt.</p>
           </div>
         </div>
 
-        <div class="form-section">
-          <h3>Chế độ &amp; thời gian</h3>
-          <div class="form-grid">
-            <label>Mức lương (theo giờ hoặc tháng)
-              <input placeholder="Ví dụ: 30–40K/giờ hoặc 4–5 triệu/tháng">
-            </label>
-            <label>Địa điểm làm việc
-              <input placeholder="Quận/Huyện, Tỉnh/Thành phố">
-            </label>
-            <label>Thời gian làm việc / Ca làm
-              <input placeholder="Ví dụ: Ca linh hoạt, Thứ 2–6, 17:00–22:00">
-            </label>
-            <label>Hạn ứng tuyển
-              <input type="date">
-            </label>
+        <!-- Form -->
+        <form class="panel post-form" id="post-form" novalidate>
+          <div class="form-section">
+            <h3>Thông tin cơ bản</h3>
+            <div class="form-grid">
+              <label class="full-field"><span class="lbl">Tên công việc <span class="req-star">*</span></span>
+                <input id="pf-title" name="title" required placeholder="Ví dụ: Trợ lý Marketing Part-time hoặc Nhân viên pha chế">
+                <small class="field-err" id="err-title"></small>
+              </label>
+              <label><span class="lbl">Danh mục <span class="req-star">*</span></span>
+                <select id="pf-cat" name="category" required>
+                  <option value="">-- Chọn danh mục --</option>
+                  <option>Phục vụ</option><option>Bán hàng</option><option>Marketing</option>
+                  <option>Công nghệ thông tin</option><option>Thiết kế</option>
+                  <option>Gia sư</option><option>Kho vận</option><option>Khác</option>
+                </select>
+                <small class="field-err" id="err-cat"></small>
+              </label>
+              <label><span class="lbl">Hình thức làm việc <span class="req-star">*</span></span>
+                <select id="pf-type" name="job_type" required>
+                  <option value="">-- Chọn hình thức --</option>
+                  <option value="Part-time">Bán thời gian (Part-time)</option>
+                  <option value="Toàn thời gian">Toàn thời gian</option>
+                  <option value="Thực tập">Thực tập</option>
+                  <option value="Remote">Remote / Làm từ xa</option>
+                </select>
+                <small class="field-err" id="err-type"></small>
+              </label>
+              <label class="full-field"><span class="lbl">Mô tả công việc <span class="req-star">*</span></span>
+                <textarea id="pf-desc" name="description" rows="5" required placeholder="Mô tả trách nhiệm và công việc hàng ngày..."></textarea>
+                <small class="field-err" id="err-desc"></small>
+              </label>
+              <label class="full-field"><span class="lbl">Yêu cầu ứng viên <span class="req-star">*</span></span>
+                <textarea id="pf-reqs" name="requirements" rows="4" required placeholder="Kỹ năng, tinh thần trách nhiệm và phẩm chất cần có..."></textarea>
+                <small class="field-err" id="err-reqs"></small>
+              </label>
+            </div>
           </div>
-        </div>
 
-        <div class="form-actions">
-          <button type="button" class="secondary-btn" data-goto-tab="2">Hủy bỏ</button>
-          <button class="primary-btn" type="submit">Đăng tuyển ngay <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-        </div>
-      </form>
+          <div class="form-section">
+            <h3>Chế độ &amp; Thời gian làm việc</h3>
+            <div class="form-grid">
+              <label><span class="lbl">Mức lương <span class="req-star">*</span></span>
+                <input id="pf-salary" name="salary" required placeholder="Ví dụ: 30–40K/giờ hoặc 4–5 triệu/tháng">
+                <small class="field-err" id="err-salary"></small>
+              </label>
+              <label><span class="lbl">Khu vực làm việc <span class="req-star">*</span></span>
+                <select id="pf-area" name="location" required>
+                  <option value="">-- Chọn khu vực --</option>
+                  <option>TP. Hồ Chí Minh</option><option>Hà Nội</option>
+                  <option>Đà Nẵng</option><option>Cần Thơ</option>
+                  <option>Remote</option><option>Khác</option>
+                </select>
+                <small class="field-err" id="err-area"></small>
+              </label>
+              <label>Địa chỉ cụ thể
+                <input id="pf-address" name="address" placeholder="Số nhà, đường, quận...">
+              </label>
+              <label>Ca làm việc
+                <select id="pf-shift" name="shift">
+                  <option value="">-- Chọn ca --</option>
+                  <option>Ca sáng (6:00 – 12:00)</option>
+                  <option>Ca chiều (12:00 – 18:00)</option>
+                  <option>Ca tối (18:00 – 23:00)</option>
+                  <option>Ca linh hoạt</option>
+                  <option>Ca hành chính (8:00 – 17:00)</option>
+                  <option>Thỏa thuận</option>
+                </select>
+              </label>
+              <label>Số lượng cần tuyển
+                <input id="pf-slots" name="slots" type="number" min="1" placeholder="Ví dụ: 3">
+              </label>
+              <label><span class="lbl">Hạn ứng tuyển <span class="req-star">*</span></span>
+                <input id="pf-deadline" name="deadline" type="date" required>
+                <small class="field-err" id="err-deadline"></small>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Hình ảnh / Banner <span style="font-weight:400; color:#8a94a8; font-size:var(--fs-xs);">(không bắt buộc, tối đa 3MB)</span></h3>
+            <label class="img-drop-label" id="img-drop-label" for="pf-img-input">
+              <svg class="icon" width="30" height="30"><use href="#i-upload"/></svg>
+              <strong>Kéo thả hoặc nhấn để chọn ảnh</strong>
+              <small>PNG, JPG, WEBP – tối đa 3MB</small>
+              <input type="file" id="pf-img-input" accept="image/*" style="display:none">
+            </label>
+            <div id="img-chosen-row" hidden style="display:flex; align-items:center; gap:12px; margin-top:10px; padding:10px 14px; background:#f8f9fe; border-radius:12px; border:1px solid #e2e6f4;">
+              <img id="img-thumb" src="" alt="thumb" style="width:52px; height:52px; border-radius:8px; object-fit:cover;">
+              <div style="flex:1; min-width:0;">
+                <strong id="img-fname" style="font-size:var(--fs-xs); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></strong>
+                <small id="img-fsize" style="color:#8a94a8;"></small>
+              </div>
+              <button type="button" id="img-remove-btn" style="border:0; background:#ffe8ef; color:#e54d6e; border-radius:8px; padding:6px 10px; font-size:var(--fs-xs); font-weight:700; cursor:pointer;">Xóa</button>
+            </div>
+            <small class="field-err" id="err-img"></small>
+          </div>
+
+          <div class="form-actions" style="border-top:1px solid #f0f2f8; padding-top:20px;">
+            <button type="button" class="secondary-btn" data-goto-tab="2">Hủy bỏ</button>
+            <button type="button" class="secondary-btn" id="post-draft-btn">Lưu nháp</button>
+            <button class="primary-btn" type="submit" id="post-submit-btn">Đăng tuyển ngay <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -287,15 +378,17 @@
       </div>
     </div>
 
-    <div class="dash-filter-bar">
-      <div class="dash-pills" id="cand-filter-tabs">
+    <div class="dash-filter-bar cand-toolbar" id="cand-toolbar">
+      <div class="seg-toggle"><button type="button" data-cv="kanban" class="active">Kanban</button><button type="button" data-cv="list">Danh sách</button></div>
+      <select id="cand-job-select" class="dash-search-input" aria-label="Lọc theo vị trí"></select>
+    </div>
+    <div class="dash-pills" id="cand-filter-tabs" style="margin-bottom:14px" hidden>
         <button class="dash-pill active" data-cand-filter="all">Tất cả</button>
         <button class="dash-pill" data-cand-filter="submitted">Mới nộp</button>
-        <button class="dash-pill" data-cand-filter="reviewing">Đang xem xét</button>
-        <button class="dash-pill" data-cand-filter="interview">Đã mời PV</button>
+        <button class="dash-pill" data-cand-filter="reviewing">Đã tiếp nhận</button>
+        <button class="dash-pill" data-cand-filter="interview">Phỏng vấn</button>
         <button class="dash-pill" data-cand-filter="accepted">Đã trúng tuyển</button>
-        <button class="dash-pill" data-cand-filter="rejected">Đã từ chối</button>
-      </div>
+        <button class="dash-pill" data-cand-filter="rejected">Từ chối</button>
     </div>
 
     <div id="employer-candidates-full"></div>
@@ -316,7 +409,7 @@
         <h3 style="font-size: var(--fs-h4); margin-bottom: 6px;">Đổi mật khẩu tài khoản</h3>
         <div class="profile-field">
           <label>Mật khẩu hiện tại</label>
-          <input type="password" required placeholder="Nhập mật khẩu hiện tại" value="123456">
+          <input type="password" required placeholder="Nhập mật khẩu hiện tại">
         </div>
         <div class="profile-field">
           <label>Mật khẩu mới</label>
@@ -349,8 +442,28 @@
   </div>
 
   <div id="dash-placeholder" hidden></div>
+
+  <div class="dash-view" data-view="6" hidden>
+    <div class="dash-welcome"><div><span>ĐỘI NGŨ CỦA BẠN</span><h1>Nhân viên & yêu cầu</h1><p>Xếp ca, xác nhận hoàn thành, xử lý yêu cầu nghỉ / đổi ca / chuyển vị trí, cho nghỉ việc.</p></div></div>
+    <div id="emp-staff"></div>
+  </div>
+
+  <div class="dash-view" data-view="7" hidden>
+    <div class="dash-welcome"><div><span>KIỂM SOÁT ỨNG VIÊN</span><h1>Danh sách đen ứng viên</h1><p>Chặn các ứng viên không đáp ứng yêu cầu hoặc từng vi phạm; có thể gỡ chặn bất cứ lúc nào.</p></div></div>
+    <div id="emp-blacklist"></div>
+  </div>
+
+  <div class="dash-view" data-view="8" hidden>
+    <div class="dash-welcome"><div><span>UY TÍN & HỖ TRỢ</span><h1>Đánh giá & khiếu nại</h1><p>Xem đánh giá của sinh viên về công ty, đánh giá nhân viên và theo dõi khiếu nại đã gửi.</p></div></div>
+    <div id="emp-reviews"></div>
+  </div>
 </main>
 </div></div>
-<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/dashboard.js"></script>
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/social.js"></script><script src="js/modal.js"></script><script src="js/validators.js"></script><script src="js/dashboard.js"></script>
+<script src="js/portal-common.js"></script>
+<script src="js/portal-employer.js"></script>
+<script src="js/portal-extras.js"></script>
+<script src="js/public-extras.js"></script>
+<script src="js/notify.js"></script>
 </body>
 </html>

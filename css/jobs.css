@@ -280,3 +280,93 @@
   }
 }
 
+/* =========================================================
+   QUICK FILTER TABS (by shift/area)
+   ========================================================= */
+.jobs-quick-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+.jqt-btn {
+  border: 1.5px solid #e2e6f4;
+  background: #fff;
+  color: #5c6680;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.18s;
+  white-space: nowrap;
+}
+.jqt-btn:hover {
+  border-color: #9ab2fb;
+  color: #4f7dff;
+  background: #f7f9ff;
+}
+.jqt-btn.active {
+  background: linear-gradient(110deg, #4f7dff, #876cf2);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(79, 125, 255, 0.28);
+}
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px 0 10px;
+  flex-wrap: wrap;
+}
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1.5px solid #e2e6f2;
+  border-radius: 10px;
+  background: #fff;
+  color: #5c6680;
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.18s;
+}
+.page-btn:hover {
+  border-color: #9ab2fb;
+  color: #4f7dff;
+  background: #f7f9ff;
+}
+.page-btn.active {
+  background: linear-gradient(110deg, #4f7dff, #876cf2);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(79, 125, 255, 0.25);
+}
+.page-ellipsis {
+  color: #9aa2b2;
+  font-size: var(--fs-body-sm);
+  padding: 0 4px;
+}
+
+@media (max-width: 760px) {
+  .jobs-quick-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+  .jobs-quick-tabs::-webkit-scrollbar { display: none; }
+  .jqt-btn { flex-shrink: 0; }
+}
+
+
+/* Chống tràn ngang trên mobile: cột kết quả không được dãn theo dải tab cuộn ngang */
+.jobs-layout > * { min-width: 0; }
+@media (max-width: 900px) { .jobs-layout { grid-template-columns: minmax(0, 1fr); } .jobs-quick-tabs { max-width: 100%; } }

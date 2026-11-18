@@ -14,6 +14,60 @@
     (a.user.role === 'student' ? student_profiles : employer_profiles).push(a.profile);
   });
 
+  /* Mật khẩu đã đổi trong Cài đặt tài khoản (demo) */
+  var pwo = read('hg_pw_overrides', {});
+  users.forEach(function (u) { if (pwo[u.id]) u.password = pwo[u.id]; });
+
+  /* Phân quyền quản trị: admin gốc cấp / thu hồi quyền QTV cho tài khoản khác (lưu localStorage) */
+  HG.ROOT_ADMIN_ID = 6;
+  var roleOv = read('hg_role_overrides', {});
+  users.forEach(function (u) { if (roleOv[u.id]) { u.orig_role = roleOv[u.id].orig; u.role = roleOv[u.id].role; u.granted_by = roleOv[u.id].by; u.perms = roleOv[u.id].perms; } });
+  HG.isRootAdmin = function (u) { u = u || HG.user(); return !!u && u.id === HG.ROOT_ADMIN_ID; };
+  HG.PERMS = { moderate: 'Kiểm duyệt tin', users: 'Quản lý người dùng', reports: 'Xử lý khiếu nại & danh sách đen', categories: 'Quản lý danh mục', reviews: 'Quản lý đánh giá', support: 'Hộp thư & thông báo hệ thống' };
+  /* Admin gốc có toàn quyền; QTV được cấp chỉ có các quyền đã chọn (không có perms = đủ quyền để tương thích bản cũ) */
+  HG.can = function (p, u) {
+    u = u || HG.user(); if (!u || u.role !== 'admin') return false;
+    if (u.id === HG.ROOT_ADMIN_ID || !u.perms) return true;
+    return u.perms.indexOf(p) !== -1;
+  };
+  HG.setRole = function (uid, role, perms) {
+    var u = users.find(function (x) { return x.id === uid; }); if (!u || uid === HG.ROOT_ADMIN_ID) return false;
+    var o = read('hg_role_overrides', {});
+    if (role === 'admin') { o[uid] = { role: 'admin', orig: u.orig_role || u.role, by: HG.ROOT_ADMIN_ID, perms: perms || Object.keys(HG.PERMS) }; u.orig_role = o[uid].orig; u.role = 'admin'; u.granted_by = HG.ROOT_ADMIN_ID; u.perms = o[uid].perms; }
+    else { var back = (o[uid] && o[uid].orig) || u.orig_role || 'student'; delete o[uid]; u.role = back; delete u.orig_role; delete u.granted_by; delete u.perms; }
+    write('hg_role_overrides', o); HG.audit && HG.audit(role === 'admin' ? 'Cấp quyền QTV' : 'Thu hồi quyền QTV', u.full_name + (role === 'admin' ? ' · ' + (o[uid].perms || []).join(', ') : '')); return true;
+  };
+
+  /* Khóa/mở khóa tài khoản, xác minh doanh nghiệp, xử lý báo cáo: lưu bền (admin) */
+  var us = read('hg_user_status', {}); users.forEach(function (u) { if (us[u.id]) u.status = us[u.id]; });
+  HG.setUserStatus = function (uid, status) {
+    var u = users.find(function (x) { return x.id === uid; }); if (!u || uid === HG.ROOT_ADMIN_ID) return false;
+    var o = read('hg_user_status', {}); o[uid] = status; write('hg_user_status', o); u.status = status; HG.audit && HG.audit(status === 'active' ? 'Mở khóa tài khoản' : 'Khóa tài khoản', u.full_name); return true;
+  };
+  var ev = read('hg_emp_verified', {}); employer_profiles.forEach(function (ep) { if (ev[ep.id] != null) ep.verified = ev[ep.id]; });
+  HG.setEmpVerified = function (epid, v) {
+    var ep = employer_profiles.find(function (x) { return x.id === epid; }); if (!ep) return false;
+    var o = read('hg_emp_verified', {}); o[epid] = !!v; write('hg_emp_verified', o); ep.verified = !!v; HG.audit && HG.audit(v ? 'Xác minh doanh nghiệp' : 'Hủy xác minh', ep.company_name); return true;
+  };
+  var rs = read('hg_report_status', {}); reports.forEach(function (r) { if (rs[r.id]) Object.assign(r, rs[r.id]); });
+  HG.setReportStatus = function (id, patch) {
+    var r = reports.find(function (x) { return x.id === id; }); if (!r) return false;
+    var o = read('hg_report_status', {}); o[id] = Object.assign(o[id] || {}, patch); write('hg_report_status', o); Object.assign(r, patch); return true;
+  };
+
+  var delU = read('hg_user_deleted', []); users.forEach(function (u) { if (delU.indexOf(u.id) !== -1) u.status = 'deleted'; });
+  HG.deleteUser = function (uid) {
+    var u = users.find(function (x) { return x.id === uid; }); if (!u || uid === HG.ROOT_ADMIN_ID) return false;
+    var l = read('hg_user_deleted', []); if (l.indexOf(uid) === -1) l.push(uid); write('hg_user_deleted', l); u.status = 'deleted'; HG.audit && HG.audit('Xóa tài khoản', u.full_name + ' (' + u.email + ')'); return true;
+  };
+  /* Báo cáo / khiếu nại do người dùng gửi (nối vào mảng reports của admin) */
+  read('hg_reports2', []).forEach(function (r) { if (!reports.some(function (x) { return x.id === r.id; })) reports.push(r); });
+
+  /* Danh mục ngành nghề do admin chỉnh sửa (thay thế danh sách mặc định) */
+  var catStore = read('hg_categories', null);
+  if (catStore && catStore.length) { job_categories.length = 0; catStore.forEach(function (c) { job_categories.push(c); }); }
+  HG.saveCategories = function () { write('hg_categories', job_categories.slice()); };
+
   HG.icon = function (name, size) {
     size = size || 20;
     return '<svg class="icon" width="' + size + '" height="' + size + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
@@ -37,8 +91,9 @@
   HG.login = function (email, password, role) {
     var u = users.find(function (x) { return x.email.toLowerCase() === email.trim().toLowerCase() && x.password === password; });
     if (!u) return { error: 'Email hoặc mật khẩu không đúng.' };
+    if (u.status === 'deleted') return { error: 'Email hoặc mật khẩu không đúng.' };
     if (u.status !== 'active') return { error: 'Tài khoản đang bị khóa.' };
-    if (role && u.role !== role) return { error: 'Đây là tài khoản ' + ROLE_NAME[u.role] + '. Hãy chọn đúng loại tài khoản ở trên.' };
+    if (role && u.role !== role && u.role !== 'admin') return { error: 'Đây là tài khoản ' + ROLE_NAME[u.role] + '. Hãy chọn đúng loại tài khoản ở trên.' };
     memUid = u.id; write('hg_session', u.id);
     return { user: u };
   };
@@ -70,7 +125,7 @@
   };
   HG.logout = function () {
     memUid = null;
-    try { localStorage.removeItem('hg_session'); } catch (e) {}
+    try { localStorage.removeItem('hg_session'); sessionStorage.setItem('hg_flash', JSON.stringify({ msg: 'Bạn đã đăng xuất.', type: 'info' })); } catch (e) {}
     location.href = 'index.html';
   };
   /* id trong student_profiles / employer_profiles của user đang đăng nhập */
@@ -97,16 +152,76 @@
     return HG.isSaved(id);
   };
 
-  /* ---- Đơn ứng tuyển (mock + đơn mới tạo khi test) ---- */
-  HG.applications = function () { return applications.concat(read('hg_apps', [])); };
-  HG.apply = function (jobId, cvId) {
+  /* ---- Đơn ứng tuyển (mock + đơn mới) – mọi thay đổi trạng thái được lưu bền trong hg_app_patches ---- */
+  HG.applications = function () {
+    var patches = read('hg_app_patches', {});
+    var list = applications.concat(read('hg_apps', []));
+    list.forEach(function (a) { var p = patches[a.id]; if (p) Object.assign(a, p); });
+    return list;
+  };
+  function userIdOfStudent(sid) { var sp = student_profiles.find(function (x) { return x.id === sid; }); return sp ? sp.user_id : null; }
+  function jobAndOwner(jobId) {
+    var j = jobs.find(function (x) { return x.id === jobId; }) || { title: 'Việc làm #' + jobId };
+    var ep = employer_profiles.find(function (x) { return x.id === j.employer_id; });
+    return { job: j, uid: ep ? ep.user_id : null, company: ep ? ep.company_name : 'Nhà tuyển dụng' };
+  }
+  var APP_MSG = {
+    2: function (t, c) { return c + ' đã tiếp nhận hồ sơ của bạn cho vị trí "' + t + '".'; },
+    3: function (t, c) { return c + ' mời bạn phỏng vấn vị trí "' + t + '".'; },
+    4: function (t, c) { return 'Chúc mừng! Bạn đã trúng tuyển vị trí "' + t + '" tại ' + c + '.'; },
+    5: function (t, c) { return c + ' đã từ chối hồ sơ của bạn cho vị trí "' + t + '".'; }
+  };
+  /* meta: { reason, interview_at, by: 'employer' | 'student' } */
+  HG.patchApp = function (appId, patch) {
+    var a = HG.applications().find(function (x) { return x.id === appId; }); if (!a) return false;
+    var patches = read('hg_app_patches', {}); patches[appId] = Object.assign(patches[appId] || {}, patch, { updated_at: HG.now() });
+    write('hg_app_patches', patches); Object.assign(a, patches[appId]); return true;
+  };
+  HG.setAppStatus = function (appId, statusId, meta) {
+    meta = meta || {};
+    var a = HG.applications().find(function (x) { return x.id === appId; }); if (!a) return false;
+    var patches = read('hg_app_patches', {});
+    var hist = (a.history || [{ s: a.status_id, at: a.applied_at, r: '' }]).concat([{ s: statusId, at: HG.now(), r: meta.reason || '' }]);
+    var patch = { history: hist, status_id: statusId, status_reason: meta.reason || '', interview_at: meta.interview_at || a.interview_at || '', reviewed_at: HG.now(), updated_at: HG.now() };
+    patches[appId] = Object.assign(patches[appId] || {}, patch); write('hg_app_patches', patches); Object.assign(a, patch);
+    if (meta.silent) return true;
+    var info = jobAndOwner(a.job_id);
+    if (statusId === 6) { if (info.uid && HG.notify) HG.notify(info.uid, 'Ứng viên đã rút đơn ứng tuyển vị trí "' + info.job.title + '".', { link: 'employer.html?tab=4', kind: 'app' }); }
+    else if (APP_MSG[statusId] && HG.notify) {
+      var sUid = userIdOfStudent(a.student_id), txt = APP_MSG[statusId](info.job.title, info.company);
+      if (statusId === 5 && meta.reason) txt += ' Lý do: ' + meta.reason;
+      if (statusId === 3 && meta.interview_at) txt += ' Lịch hẹn: ' + meta.interview_at.replace('T', ' ') + '.';
+      if (sUid) HG.notify(sUid, txt, { link: 'student.html?tab=4', kind: 'app' });
+    }
+    return true;
+  };
+  HG.canUndoApp = function (a) {
+    var h = a.history; if (!h || h.length < 2) return false;
+    var last = h[h.length - 1], t = new Date(String(last.at).replace(' ', 'T')).getTime();
+    return Date.now() - t < 10 * 60000 && last.s !== 6;
+  };
+  HG.undoApp = function (appId) {
+    var a = HG.applications().find(function (x) { return x.id === appId; }); if (!a || !HG.canUndoApp(a)) return false;
+    var prev = a.history[a.history.length - 2];
+    var hist = a.history.slice(0, -1);
+    var patches = read('hg_app_patches', {}); patches[appId] = Object.assign(patches[appId] || {}, { history: hist, status_id: prev.s, status_reason: prev.r || '', updated_at: HG.now() });
+    write('hg_app_patches', patches); Object.assign(a, patches[appId]);
+    var info = jobAndOwner(a.job_id), sUid = userIdOfStudent(a.student_id);
+    if (sUid && HG.notify) HG.notify(sUid, info.company + ' đã điều chỉnh lại trạng thái hồ sơ vị trí "' + info.job.title + '".', { link: 'student.html?tab=4', kind: 'app' });
+    return true;
+  };
+  HG.apply = function (jobId, cvId, cover) {
     var u = HG.user();
     if (!u || u.role !== 'student') return { error: 'Cần đăng nhập tài khoản sinh viên.' };
     var sid = HG.studentId(u);
-    if (HG.applications().some(function (a) { return a.student_id === sid && a.job_id === jobId; })) return { error: 'Bạn đã ứng tuyển việc này rồi.' };
+    if (HG.canApply) { var ck = HG.canApply(sid, jobId); if (ck.error) return ck; }
+    if (HG.applications().some(function (a) { return a.student_id === sid && a.job_id === jobId && a.status_id !== 6; })) return { error: 'Bạn đã ứng tuyển việc này rồi.' };
     var list = read('hg_apps', []);
-    list.push({ id: 1000 + list.length + 1, student_id: sid, job_id: jobId, cv_id: cvId || null, status_id: 1, cover_letter: '', applied_at: HG.now(), reviewed_at: null, created_at: HG.now(), updated_at: HG.now() });
+    list.push({ id: 1000 + list.length + 1, student_id: sid, job_id: jobId, cv_id: cvId || null, status_id: 1, cover_letter: cover || '', applied_at: HG.now(), reviewed_at: null, created_at: HG.now(), updated_at: HG.now() });
     write('hg_apps', list);
+    var info = jobAndOwner(jobId);
+    if (info.uid && HG.notify) HG.notify(info.uid, u.full_name + ' vừa ứng tuyển vị trí "' + info.job.title + '".', { link: 'employer.html?tab=4', kind: 'app', pref: 'instant' });
+    if (info.uid && HG.pref && HG.pref(info.uid, 'autoConfirm')) HG.notify(u.id, info.company + ' đã nhận được hồ sơ ứng tuyển vị trí "' + info.job.title + '" của bạn.', { link: 'student.html?tab=4', kind: 'app' });
     return { ok: true };
   };
 
@@ -117,7 +232,7 @@
       '<div class="job-top"><span class="company-logo" style="background:' + job.color + '">' + HG.esc(job.logo) + '</span>' +
       '<button type="button" class="save-btn' + (HG.isSaved(job.id) ? ' saved' : '') + '" aria-label="Lưu việc làm">' + HG.icon('bookmark', 19) + '</button></div>' +
       '<div class="job-tags">' + tags + '</div>' +
-      '<h3>' + HG.esc(job.title) + '</h3><p class="company-name">' + HG.esc(job.company) + '</p>' +
+      '<h3>' + HG.esc(job.title) + '</h3><p class="company-name">' + HG.esc(job.company) + (job.verified ? ' <span class="v-ico" title="Nhà tuyển dụng đã xác minh">✔</span>' : '') + (function () { var r = HG.avgRating ? HG.avgRating(job.emp_uid) : { count: 0 }; return r.count ? ' <span class="r-ico" title="' + r.count + ' đánh giá">★ ' + r.avg.toFixed(1) + '</span>' : ''; })() + '</p>' +
       '<div class="job-meta"><span>' + HG.icon('pin', 16) + HG.esc(job.location) + '</span><span>' + HG.icon('clock', 16) + HG.esc(job.type) + '</span></div>' +
       '<div class="job-bottom"><strong>' + HG.esc(job.salary) + '</strong><button type="button">Xem chi tiết ' + HG.icon('arrow', 16) + '</button></div></article>';
   };
@@ -128,7 +243,15 @@
     var save = e.target.closest('.job-card .save-btn');
     if (save) {
       e.stopPropagation();
-      save.classList.toggle('saved', HG.toggleSaved(Number(save.closest('.job-card').dataset.id)));
+      var who = HG.user();
+      if (!who) { HG.toast ? HG.toast('Hãy đăng nhập tài khoản sinh viên để lưu việc làm.', 'info') : 0; return; }
+      if (who.role !== 'student') { HG.toast && HG.toast('Chỉ tài khoản sinh viên mới lưu được việc làm.', 'info'); return; }
+      var jid = Number(save.closest('.job-card').dataset.id);
+      HG.busy(save, function () {
+        var nowSaved = HG.toggleSaved(jid);
+        save.classList.toggle('saved', nowSaved);
+        HG.toast(nowSaved ? 'Đã lưu việc làm vào mục yêu thích.' : 'Đã bỏ lưu việc làm.', nowSaved ? 'success' : 'info');
+      }, 350);
       return;
     }
     var card = e.target.closest('.job-card[data-href]');
@@ -280,23 +403,26 @@
     }
 
     document.addEventListener('click', function (e) {
-      if (userDropdown && !userDropdown.contains(e.target) && e.target !== userBtn) {
+      if (userDropdown && !userDropdown.contains(e.target) && userBtn && !userBtn.contains(e.target)) {
         userDropdown.classList.remove('show');
       }
-      if (notifyPopover && !notifyPopover.contains(e.target) && e.target !== notifyBtn) {
+      if (notifyPopover && !notifyPopover.contains(e.target) && notifyBtn && !notifyBtn.contains(e.target)) {
         notifyPopover.classList.remove('show');
       }
     });
 
-    /* Menu mobile: hiển thị hồ sơ cá nhân và nút đăng xuất */
+    /* Menu mobile: hiển thị hồ sơ cá nhân và nút đăng xuất - chỉ thêm 1 lần */
     document.querySelectorAll('.nav-auth').forEach(function (n) { n.remove(); });
-    document.querySelector('.header-inner nav').insertAdjacentHTML('beforeend',
-      '<div style="padding: 10px 12px; margin-top: 8px; border-top: 1px solid #edf0f8; display: flex; align-items: center; gap: 10px;">' +
-        '<span class="header-user-avatar" style="width: 32px; height: 32px; font-size: 13px;">' + HG.esc(userInitial) + '</span>' +
-        '<div><strong style="display:block; font-size: 13px;">' + HG.esc(me.full_name) + '</strong><small style="color:#7a8499; font-size: 11px;">' + HG.esc(roleLabel) + '</small></div>' +
-      '</div>' +
-      '<a class="nav-auth" href="' + dashUrl + '">' + HG.icon('home', 16) + ' Vào Dashboard</a>' +
-      '<button class="nav-auth" style="color: #e54d6e;" type="button" data-logout>' + HG.icon('logout', 16) + ' Đăng xuất</button>');
+    var mobileUserBlock = document.querySelector('.header-inner nav .nav-mobile-user');
+    if (!mobileUserBlock) {
+      document.querySelector('.header-inner nav').insertAdjacentHTML('beforeend',
+        '<div class="nav-mobile-user" style="padding: 10px 12px; margin-top: 8px; border-top: 1px solid #edf0f8; display: flex; align-items: center; gap: 10px;">' +
+          '<span class="header-user-avatar" style="width: 32px; height: 32px; font-size: 13px;">' + HG.esc(userInitial) + '</span>' +
+          '<div><strong style="display:block; font-size: 13px;">' + HG.esc(me.full_name) + '</strong><small style="color:#7a8499; font-size: 11px;">' + HG.esc(roleLabel) + '</small></div>' +
+        '</div>' +
+        '<a class="nav-auth" href="' + dashUrl + '">' + HG.icon('home', 16) + ' Vào Dashboard</a>' +
+        '<button class="nav-auth" style="color: #e54d6e;" type="button" data-logout>' + HG.icon('logout', 16) + ' Đăng xuất</button>');
+    }
   }
   var toggle = document.getElementById('menu-toggle');
   if (toggle) {

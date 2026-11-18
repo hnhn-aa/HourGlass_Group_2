@@ -47,15 +47,7 @@
   }
 
   /* ---- Toast thông báo nổi ---- */
-  function showToast(msg) {
-    var old = document.querySelector('.dash-toast');
-    if (old) old.remove();
-    var t = document.createElement('div');
-    t.className = 'dash-toast';
-    t.innerHTML = I('check', 18) + '<span>' + E(msg) + '</span>';
-    document.body.appendChild(t);
-    setTimeout(function () { t.remove(); }, 3200);
-  }
+  function showToast(msg, type) { HG.toast(msg, type || 'success'); }
 
   /* ---- Header thông tin người dùng ---- */
   var display = user.full_name, emp = null;
@@ -126,7 +118,7 @@
     }
 
     document.addEventListener('click', function(e) {
-      if (notifyDropdown && !notifyDropdown.contains(e.target) && e.target !== notifyBtn) {
+      if (notifyDropdown && !notifyDropdown.contains(e.target) && e.target !== notifyBtn && !notifyBtn.contains(e.target)) {
         notifyDropdown.classList.remove('show');
       }
     });
@@ -334,6 +326,7 @@
         if (b) {
           studentSkills.splice(Number(b.dataset.delSkill), 1);
           HG.write('hg_skills_' + sid, studentSkills);
+          showToast('Đã xóa kỹ năng.', 'info');
           renderSkills();
         }
       });
@@ -343,12 +336,14 @@
     if (addSkillBtn && skillIn) {
       addSkillBtn.addEventListener('click', function() {
         var val = skillIn.value.trim();
-        if (val && studentSkills.indexOf(val) === -1) {
-          studentSkills.push(val);
-          HG.write('hg_skills_' + sid, studentSkills);
-          renderSkills();
-          skillIn.value = '';
-        }
+        if (!val) { showToast('Hãy nhập tên kỹ năng trước khi thêm.', 'error'); skillIn.focus(); return; }
+        if (val.length > 40) { showToast('Tên kỹ năng tối đa 40 ký tự.', 'error'); return; }
+        if (studentSkills.some(function (x) { return x.toLowerCase() === val.toLowerCase(); })) { showToast('Kỹ năng "' + val + '" đã có trong danh sách.', 'info'); return; }
+        studentSkills.push(val);
+        HG.write('hg_skills_' + sid, studentSkills);
+        renderSkills();
+        skillIn.value = '';
+        showToast('Đã thêm kỹ năng "' + val + '".');
       });
     }
 
@@ -356,6 +351,13 @@
     if (profForm) {
       profForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        var V = window.HGValidate, bad = null, msg = '';
+        [[inName, 'required|fullname', 'họ và tên'], [inEmail, 'required|email', 'email'], [inPhone, 'phone', 'số điện thoại']].forEach(function (r) {
+          var m = V ? V.check(r[0].value, r[1], { label: r[2] }) : '';
+          r[0].classList.toggle('invalid', !!m);
+          if (m && !bad) { bad = r[0]; msg = m; }
+        });
+        if (bad) { showToast(msg, 'error'); bad.focus(); return; }
         user.full_name = inName.value.trim();
         user.email = inEmail.value.trim();
         user.phone = inPhone.value.trim();
@@ -456,6 +458,9 @@
         var file = e.target.files[0];
         if (file) {
           var ext = file.name.split('.').pop().toLowerCase();
+          if (['pdf', 'doc', 'docx'].indexOf(ext) === -1) { showToast('CV chỉ hỗ trợ định dạng PDF hoặc DOCX.', 'error'); cvPicker.value = ''; return; }
+          if (file.size > 5 * 1024 * 1024) { showToast('File CV vượt quá 5MB, hãy chọn file nhỏ hơn.', 'error'); cvPicker.value = ''; return; }
+          if (studentCvs.length >= 5) { showToast('Bạn chỉ có thể lưu tối đa 5 CV. Hãy xóa bớt CV cũ.', 'error'); cvPicker.value = ''; return; }
           var newCv = {
             id: Date.now(),
             student_id: sid,
@@ -522,44 +527,73 @@
       });
     }
 
-    /* TAB 4: ĐƠN ỨNG TUYỂN */
+    /* TAB 4: ĐƠN ỨNG TUYỂN – tab theo nhóm trạng thái, hủy đơn khi nhà tuyển dụng chưa xử lý, cập nhật tức thời */
     var fullAppsEl = $('student-apps-full');
     var activeAppFilter = 'all';
+    var APP_GROUPS = {
+      pending: ['submitted'], received: ['reviewing', 'interview'], accepted: ['accepted'], rejected: ['rejected']
+    };
+    var APP_LABEL = {
+      submitted: ['Đang chờ duyệt', 'pending'], reviewing: ['Đã tiếp nhận', 'reviewing'], interview: ['Mời phỏng vấn', 'interview'],
+      accepted: ['Đã trúng tuyển', 'accepted'], rejected: ['Bị từ chối', 'rejected'], withdrawn: ['Bạn đã hủy đơn', 'rejected']
+    };
+
+    function renderAppPills() {
+      var apps = getStudentApps(), tabs = $('app-filter-tabs'); if (!tabs) return;
+      tabs.querySelectorAll('[data-app-filter]').forEach(function (b) {
+        var k = b.dataset.appFilter;
+        var n = k === 'all' ? apps.length : apps.filter(function (a) { return APP_GROUPS[k].indexOf(statusName(a.status_id)) !== -1; }).length;
+        var base = b.dataset.label || (b.dataset.label = b.textContent.replace(/\s*\(\d+\)$/, ''));
+        b.innerHTML = E(base) + ' <span class="pill-count">' + n + '</span>';
+      });
+    }
 
     function renderFullApps() {
       if (!fullAppsEl) return;
+      renderAppPills();
       var apps = getStudentApps();
-      var filtered = apps.filter(function(a) {
-        var sName = statusName(a.status_id);
-        return activeAppFilter === 'all' || sName === activeAppFilter;
+      var filtered = apps.filter(function (a) {
+        return activeAppFilter === 'all' || APP_GROUPS[activeAppFilter].indexOf(statusName(a.status_id)) !== -1;
       });
 
+      if (!apps.length) {
+        fullAppsEl.innerHTML = HG.empty('file', 'Chưa có đơn ứng tuyển nào', 'Hãy tìm công việc phù hợp với lịch học của bạn và ứng tuyển chỉ với vài bước.', '<a class="primary-btn small" href="jobs.html">Tìm việc ngay</a>');
+        return;
+      }
       if (!filtered.length) {
-        fullAppsEl.innerHTML = '<div style="background: #fff; border: 1px solid #e9edf8; border-radius: 18px; padding: 40px; text-align: center;">' +
-          '<span style="width: 50px; height: 50px; border-radius: 50%; background: #eef2ff; color: #4f7dff; display: grid; place-items: center; margin: 0 auto 12px;">' + I('file', 24) + '</span>' +
-          '<h3>Không có đơn ứng tuyển nào ở trạng thái này</h3>' +
-          '<p style="color: #889; font-size: var(--fs-xs); margin-top: 4px;">Hãy thử chọn bộ lọc khác hoặc tìm kiếm công việc mới.</p>' +
-          '</div>';
+        fullAppsEl.innerHTML = HG.empty('file', 'Không có đơn nào ở nhóm này', 'Thử chọn tab khác để xem các đơn ứng tuyển còn lại.');
         return;
       }
 
-      fullAppsEl.innerHTML = filtered.map(function(a) {
-        var j = jobOf(a), c = companyOf(j), stName = statusName(a.status_id), st = STATUS[stName] || ['Đã nộp', 'pending'];
-        var canWithdraw = stName === 'submitted' || stName === 'reviewing';
+      fullAppsEl.innerHTML = filtered.map(function (a) {
+        var j = jobOf(a), c = companyOf(j), stName = statusName(a.status_id), st = APP_LABEL[stName] || ['Đang chờ duyệt', 'pending'];
+        var canCancel = stName === 'submitted';          /* nhà tuyển dụng chưa xử lý */
+        if (a.ended) st = ['Đã nghỉ việc', 'draft'];
+        var working = stName === 'accepted' && !a.ended, histHtml = '';
+        if (a.history && a.history.length > 1) histHtml = '<ul class="app-hist" id="hist-' + a.id + '" hidden>' + a.history.map(function (h) { var l = APP_LABEL[statusName(h.s)] || ['', '']; return '<li><b>' + l[0] + '</b> · ' + E(String(h.at).slice(0, 16)) + (h.r ? ' · ' + E(h.r) : '') + '</li>'; }).join('') + '</ul>';
+        if (a.ended) extra = '<div class="app-note bad">' + I('alert', 14) + ' ' + (a.ended_by === 'employer' ? 'Nhà tuyển dụng đã chấm dứt hợp tác' : 'Bạn đã nghỉ việc') + (a.ended_at ? ' (' + HG.fmtDate(a.ended_at) + ')' : '') + (a.ended_reason ? ' · ' + E(a.ended_reason) : '') + '</div>';
+        if (a.transferred_from) extra += '<div class="app-note ok">' + I('arrow', 14) + ' Đã được chuyển vị trí từ tin #' + a.transferred_from + '</div>';
+        var extra = '';
+        if (stName === 'interview' && a.interview_at) extra = '<div class="app-note ok">' + I('calendar', 14) + ' Lịch phỏng vấn: ' + E(String(a.interview_at).replace('T', ' ')) + '</div>';
+        if (stName === 'rejected' && a.status_reason) extra = '<div class="app-note bad">' + I('alert', 14) + ' Lý do: ' + E(a.status_reason) + '</div>';
 
         return '<div class="app-card-detailed">' +
           '<div class="app-detailed-main">' +
             '<span class="company-logo" style="background:' + HG.employerColor(c.id) + '; width: 44px; height: 44px;">' + E(c.company_name.charAt(0)) + '</span>' +
             '<div>' +
               '<h3 style="font-size: var(--fs-body); margin-bottom: 4px;"><a href="job-detail.html?id=' + j.id + '">' + E(j.title) + '</a></h3>' +
-              '<p style="color: #6a748c; font-size: var(--fs-xs); margin: 0;">' + E(c.company_name) + ' · Ngày nộp: ' + HG.fmtDate(a.applied_at) + '</p>' +
+              '<p style="color: #6a748c; font-size: var(--fs-xs); margin: 0;">' + E(c.company_name) + ' · Ngày nộp: ' + HG.fmtDate(a.applied_at) + '</p>' + extra + histHtml +
             '</div>' +
           '</div>' +
           '<div class="app-detailed-status">' +
             '<span class="status ' + st[1] + '" style="font-size: 13px; padding: 4px 12px;">' + st[0] + '</span>' +
-            '<div style="display: flex; gap: 8px; margin-top: 6px;">' +
+            '<div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: flex-end;">' +
               '<a class="cv-action-btn" href="job-detail.html?id=' + j.id + '">' + I('eye', 14) + ' Xem tin</a>' +
-              (canWithdraw ? '<button type="button" class="cv-action-btn danger" data-withdraw-app="' + a.id + '">Rút đơn</button>' : '') +
+              (canCancel ? '<button type="button" class="cv-action-btn danger" data-withdraw-app="' + a.id + '">Hủy đơn</button>' : '') +
+              (working ? '<button type="button" class="cv-action-btn" data-req-transfer="' + a.id + '">Xin chuyển vị trí</button><button type="button" class="cv-action-btn" data-req-quit="' + a.id + '">Xin nghỉ việc</button>' : '') +
+              ((stName === 'accepted') ? '<button type="button" class="cv-action-btn" data-rate-emp="' + a.job_id + '">★ Đánh giá</button>' : '') +
+              '<button type="button" class="cv-action-btn" data-report-emp="' + c.id + '" title="Gửi khiếu nại về nhà tuyển dụng">⚑ Báo cáo</button>' +
+              (a.history && a.history.length > 1 ? '<button type="button" class="cv-action-btn" data-hist-toggle="' + a.id + '">Lịch sử</button>' : '') +
             '</div>' +
           '</div>' +
         '</div>';
@@ -569,10 +603,10 @@
 
     var appFilterTabs = $('app-filter-tabs');
     if (appFilterTabs) {
-      appFilterTabs.addEventListener('click', function(e) {
+      appFilterTabs.addEventListener('click', function (e) {
         var b = e.target.closest('[data-app-filter]');
         if (b) {
-          appFilterTabs.querySelectorAll('.dash-pill').forEach(function(p){ p.classList.remove('active'); });
+          appFilterTabs.querySelectorAll('.dash-pill').forEach(function (p) { p.classList.remove('active'); });
           b.classList.add('active');
           activeAppFilter = b.dataset.appFilter;
           renderFullApps();
@@ -581,32 +615,35 @@
     }
 
     if (fullAppsEl) {
-      fullAppsEl.addEventListener('click', function(e) {
+      fullAppsEl.addEventListener('click', function (e) {
         var wBtn = e.target.closest('[data-withdraw-app]');
-        if (wBtn) {
-          var aid = Number(wBtn.dataset.withdrawApp);
-          HG.confirm({
-            title: 'Rút đơn ứng tuyển?',
-            message: 'Bạn có chắc chắn muốn rút hồ sơ ứng tuyển khỏi vị trí này không? Thao tác này không thể hoàn tác.',
-            confirmText: 'Rút đơn',
-            cancelText: 'Giữ lại',
-            danger: true
-          }).then(function(ok) {
-            if (ok) {
-              var allA = HG.applications();
-              var target = allA.filter(function(x){ return x.id === aid; })[0];
-              if (target) {
-                target.status_id = 6; /* withdrawn */
-                HG.write('hg_apps', allA.filter(function(x){ return x.id > 1000; }));
-                updateStudentStats();
-                renderFullApps();
-                showToast('Đã rút đơn ứng tuyển thành công.');
-              }
-            }
-          });
+        if (!wBtn) return;
+        var aid = Number(wBtn.dataset.withdrawApp);
+        var cur = HG.applications().filter(function (x) { return x.id === aid; })[0];
+        if (!cur || statusName(cur.status_id) !== 'submitted') {
+          showToast('Nhà tuyển dụng đã xử lý đơn này nên không thể hủy nữa.', 'error'); renderFullApps(); return;
         }
+        HG.confirm({
+          title: 'Hủy đơn ứng tuyển?',
+          message: 'Bạn có chắc chắn muốn hủy hồ sơ ứng tuyển vị trí này không? Thao tác này không thể hoàn tác.',
+          confirmText: 'Hủy đơn',
+          cancelText: 'Giữ lại',
+          danger: true
+        }).then(function (ok) {
+          if (!ok) return;
+          HG.busy(wBtn, function () {
+            HG.setAppStatus(aid, 6, { by: 'student' });
+            updateStudentStats(); renderFullApps();
+            showToast('Đã hủy đơn ứng tuyển.');
+          }, 700);
+        });
       });
     }
+
+    /* Cập nhật gần thời gian thực khi nhà tuyển dụng đổi trạng thái (tab khác / cùng trình duyệt) */
+    function refreshApps() { updateStudentStats(); renderFullApps(); }
+    window.addEventListener('storage', function (e) { if (e.key === 'hg_app_patches' || e.key === 'hg_apps') refreshApps(); });
+    document.addEventListener('hg:notify', refreshApps); document.addEventListener('hg:social', refreshApps);
 
     /* TAB 5: LỊCH TUẦN & ĐĂNG KÝ CA RẢNH */
     var calWeekEl = $('calendar-week-grid');
@@ -682,7 +719,11 @@
     if (pwForm) {
       pwForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        showToast('Đã đổi mật khẩu tài khoản thành công!');
+        var ins = pwForm.querySelectorAll('input[type=password]');
+        [].forEach.call(ins, function (i) { i.classList.remove('invalid'); });
+        var r = HG.changePassword(ins[0].value, ins[1].value, ins[2].value);
+        if (r.error) { ins[r.field].classList.add('invalid'); ins[r.field].focus(); showToast(r.error, 'error'); return; }
+        showToast('Đã đổi mật khẩu thành công! Lần đăng nhập sau hãy dùng mật khẩu mới.');
         pwForm.reset();
       });
     }
@@ -704,9 +745,12 @@
     if (compEl) compEl.textContent = emp.company_name;
 
     var JOB_STATUS = {
-      approved: ['Đang hoạt động', 'accepted'],
-      pending: ['Chờ duyệt', 'pending'],
-      rejected: ['Bị từ chối', '']
+      draft: ['Bản nháp', 'draft'],
+      pending: ['Chờ kiểm duyệt', 'pending'],
+      approved: ['Đã đăng', 'accepted'],
+      expired: ['Hết hạn', 'expired'],
+      rejected: ['Bị từ chối', 'rejected'],
+      locked: ['Bị khóa', 'rejected']
     };
 
     var getOwnJobs = function () {
@@ -777,6 +821,13 @@
     if (empForm) {
       empForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        var V = window.HGValidate, bad = null, msg = '';
+        [[inCompName, 'required|min:2', 'tên công ty'], [inRepName, 'required|fullname', 'tên người đại diện'], [inPhone, 'phone', 'số điện thoại']].forEach(function (r) {
+          var m = V ? V.check(r[0].value, r[1], { label: r[2] }) : '';
+          r[0].classList.toggle('invalid', !!m);
+          if (m && !bad) { bad = r[0]; msg = m; }
+        });
+        if (bad) { showToast(msg, 'error'); bad.focus(); return; }
         emp.company_name = inCompName.value.trim();
         emp.representative_name = inRepName.value.trim();
         emp.industry = inIndustry.value.trim();
@@ -793,43 +844,64 @@
       });
     }
 
-    /* TAB 2: QUẢN LÝ TIN TUYỂN DỤNG */
+    /* TAB 2: QUẢN LÝ TIN TUYỂN DỤNG – trạng thái: Nháp / Chờ kiểm duyệt / Đã đăng / Hết hạn */
     var fullJobsListEl = $('employer-full-jobs-list');
     var activeJobFilter = 'all';
     var jobFilterSearch = $('emp-job-search');
 
+    function jobMatchesFilter(j, f) {
+      if (f === 'all') return true;
+      if (f === 'rejected') return j.status === 'rejected' || j.status === 'locked';
+      return j.status === f;
+    }
+    function renderJobPills() {
+      var tabs = $('emp-job-filter-tabs'); if (!tabs) return;
+      var own = getOwnJobs();
+      tabs.querySelectorAll('[data-job-filter]').forEach(function (b) {
+        var base = b.dataset.label || (b.dataset.label = b.textContent.trim());
+        b.innerHTML = E(base) + ' <span class="pill-count">' + own.filter(function (j) { return jobMatchesFilter(j, b.dataset.jobFilter); }).length + '</span>';
+      });
+    }
+
     function renderFullJobsList() {
       if (!fullJobsListEl) return;
-      var own = getOwnJobs();
+      renderJobPills();
+      var own = getOwnJobs().slice().sort(function (a, b) { return (b.created_at || '').localeCompare(a.created_at || '') || b.id - a.id; });
       var apps = getOwnApps();
       var q = (jobFilterSearch ? jobFilterSearch.value : '').trim().toLowerCase();
 
-      var filtered = own.filter(function(j) {
-        var matchStatus = activeJobFilter === 'all' || j.status === activeJobFilter;
-        var matchQuery = !q || j.title.toLowerCase().indexOf(q) !== -1;
-        return matchStatus && matchQuery;
+      var filtered = own.filter(function (j) {
+        return jobMatchesFilter(j, activeJobFilter) && (!q || j.title.toLowerCase().indexOf(q) !== -1);
       });
 
+      if (!own.length) {
+        fullJobsListEl.innerHTML = HG.empty('briefcase', 'Bạn chưa đăng tin tuyển dụng nào', 'Tạo tin đầu tiên để tiếp cận sinh viên phù hợp. Bạn có thể lưu nháp và hoàn thiện sau.', '<button type="button" class="primary-btn small" data-goto-tab="3">Đăng tin mới</button>');
+        return;
+      }
       if (!filtered.length) {
-        fullJobsListEl.innerHTML = '<div style="padding: 30px; text-align:center; color:#889;">Không tìm thấy tin tuyển dụng phù hợp.</div>';
+        fullJobsListEl.innerHTML = HG.empty('search', 'Không tìm thấy tin phù hợp', 'Thử đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.');
         return;
       }
 
-      fullJobsListEl.innerHTML = filtered.map(function(j) {
+      fullJobsListEl.innerHTML = filtered.map(function (j) {
         var n = apps.filter(function (a) { return a.job_id === j.id; }).length;
         var cat = byId(job_categories, j.category_id);
-        var st = JOB_STATUS[j.status] || ['Đang hoạt động', 'accepted'];
+        var st = JOB_STATUS[j.status] || ['Đã đăng', 'accepted'];
+        var note = (j.status === 'rejected' || j.status === 'locked') && j.rejected_reason ? '<small class="reason-line">Lý do: ' + E(j.rejected_reason) + '</small>' : '';
+        var dl = j.end_date ? '<small>Hạn nộp: ' + HG.fmtDate(j.end_date) + '</small>' : '';
+        var acts = '';
+        if (j.status === 'approved') acts += '<a class="cv-action-btn" href="job-detail.html?id=' + j.id + '" title="Xem tin công khai">' + I('eye', 14) + '</a>';
+        acts += '<button type="button" class="cv-action-btn" data-edit-job="' + j.id + '" title="' + (j.status === 'expired' ? 'Gia hạn / sửa tin' : 'Chỉnh sửa') + '">' + I('settings', 14) + '</button>';
+        if (j.status === 'draft' || j.status === 'rejected') acts += '<button type="button" class="cv-action-btn" style="color:#2ba788;" data-submit-job="' + j.id + '" title="Gửi kiểm duyệt">' + I('arrow', 14) + '</button>';
+        acts += '<button type="button" class="cv-action-btn danger" data-del-own-job="' + j.id + '" title="Xóa tin">' + I('trash', 14) + '</button>';
 
         return '<div class="table-row">' +
-          '<span><b>' + E(j.title) + '</b><small>Tạo ngày: ' + HG.fmtDate(j.created_at) + '</small></span>' +
-          '<span>' + E(cat ? cat.name : HG.typeLabel(j.job_type)) + '</span>' +
-          '<span>' + E(j.salary_text || 'Thỏa thuận') + '</span>' +
+          '<span><b>' + E(j.title || '(Chưa có tiêu đề)') + '</b><small>Tạo ngày: ' + HG.fmtDate(j.created_at) + '</small>' + dl + note + '</span>' +
+          '<span>' + E(cat ? cat.name : (j.job_type ? HG.typeLabel(j.job_type) : '—')) + '</span>' +
+          '<span>' + E(j.salary_min || j.salary_max || j.salary_text ? HG.jobSalary(j) : '—') + '</span>' +
           '<span><b>' + n + '</b> đơn</span>' +
           '<span><i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
-          '<span class="table-actions">' +
-            '<a class="cv-action-btn" href="job-detail.html?id=' + j.id + '" title="Xem chi tiết">' + I('eye', 14) + '</a>' +
-            '<button type="button" class="cv-action-btn danger" data-del-own-job="' + j.id + '" title="Xóa tin">' + I('trash', 14) + '</button>' +
-          '</span>' +
+          '<span class="table-actions">' + acts + '</span>' +
         '</div>';
       }).join('');
     }
@@ -837,21 +909,35 @@
 
     var jobFilterTabs = $('emp-job-filter-tabs');
     if (jobFilterTabs) {
-      jobFilterTabs.addEventListener('click', function(e) {
+      jobFilterTabs.addEventListener('click', function (e) {
         var b = e.target.closest('[data-job-filter]');
         if (b) {
-          jobFilterTabs.querySelectorAll('.dash-pill').forEach(function(p){ p.classList.remove('active'); });
+          jobFilterTabs.querySelectorAll('.dash-pill').forEach(function (p) { p.classList.remove('active'); });
           b.classList.add('active');
           activeJobFilter = b.dataset.jobFilter;
           renderFullJobsList();
         }
       });
     }
-    if (jobFilterSearch) {
-      jobFilterSearch.addEventListener('input', renderFullJobsList);
-    }
+    if (jobFilterSearch) jobFilterSearch.addEventListener('input', renderFullJobsList);
     if (fullJobsListEl) {
-      fullJobsListEl.addEventListener('click', function(e) {
+      fullJobsListEl.addEventListener('click', function (e) {
+        var ed = e.target.closest('[data-edit-job]');
+        if (ed) { if (HG.openJobForm) HG.openJobForm(Number(ed.dataset.editJob)); return; }
+
+        var sb = e.target.closest('[data-submit-job]');
+        if (sb) {
+          var sj = JOBS.filter(function (x) { return x.id === Number(sb.dataset.submitJob); })[0]; if (!sj) return;
+          var miss = !sj.category_id || !sj.job_type || !sj.description || !sj.requirements || !sj.end_date || !(sj.location_text);
+          if (miss) { showToast('Tin chưa đủ thông tin. Hãy bấm sửa và hoàn thiện trước khi gửi duyệt.', 'error'); return; }
+          HG.busy(sb, function () {
+            HG.updateJob(sj.id, { status: 'pending', rejected_reason: null });
+            notifyAdmins('Tin "' + sj.title + '" của ' + emp.company_name + ' đang chờ kiểm duyệt.');
+            renderEmployerOverview(); renderFullJobsList(); showToast('Đã gửi tin đi kiểm duyệt.');
+          }, 700);
+          return;
+        }
+
         var delBtn = e.target.closest('[data-del-own-job]');
         if (delBtn) {
           var jid = Number(delBtn.dataset.delOwnJob);
@@ -861,251 +947,472 @@
             confirmText: 'Xóa tin',
             cancelText: 'Hủy',
             danger: true
-          }).then(function(ok) {
-            if (ok) {
-              var idx = JOBS.findIndex(function(x){ return x.id === jid; });
-              if (idx !== -1) JOBS.splice(idx, 1);
-              renderEmployerOverview();
-              renderFullJobsList();
+          }).then(function (ok) {
+            if (!ok) return;
+            HG.busy(delBtn, function () {
+              if (!HG.deleteJob(jid)) { showToast('Không xóa được tin, vui lòng thử lại.', 'error'); return; }
+              renderEmployerOverview(); renderFullJobsList();
               showToast('Đã xóa tin tuyển dụng thành công.');
-            }
+            }, 600);
           });
         }
       });
     }
-
-    /* TAB 3: ĐĂNG TIN TUYỂN DỤNG */
-    var form = $('post-form');
-    if (form) {
-      var f = form.querySelectorAll('input,select,textarea');
-      if (f.length >= 8) {
-        f[1].innerHTML = job_categories.map(function (c) { return '<option value="' + c.id + '">' + E(c.name) + '</option>'; }).join('');
-        f[2].innerHTML = '<option value="part-time">Part-time</option><option value="internship">Thực tập</option><option value="full-time">Toàn thời gian</option>';
-        f[6].value = emp.company_address || '';
-
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var nums = (f[5].value.match(/\d+/g) || []).map(Number);
-          var nextId = Math.max.apply(null, JOBS.map(function (j) { return j.id; })) + 1;
-          HG.addJob({
-            id: nextId,
-            employer_id: emp.id,
-            category_id: Number(f[1].value),
-            location_id: null,
-            location_text: f[6].value || emp.company_address,
-            approved_by: null,
-            title: f[0].value,
-            description: f[3].value,
-            requirements: f[4].value,
-            salary_min: nums[0] || 0,
-            salary_max: nums[1] || nums[0] || 0,
-            salary_text: f[5].value || 'Thỏa thuận',
-            job_type: f[2].value,
-            work_time: f[7].value,
-            quantity: 1,
-            experience_level: 'Không yêu cầu',
-            benefits: 'Đầy đủ đãi ngộ',
-            start_date: '',
-            end_date: f[8].value,
-            status: 'pending',
-            approved_at: null,
-            rejected_reason: null,
-            created_at: HG.now(),
-            updated_at: HG.now()
-          });
-
-          form.hidden = true;
-          var succ = $('post-success');
-          if (succ) succ.hidden = false;
-          renderEmployerOverview();
-          renderFullJobsList();
-          showToast('Đăng tin thành công! Tin đang chờ kiểm duyệt.');
-        });
-
-        var postAnotherBtn = $('post-another-btn');
-        if (postAnotherBtn) {
-          postAnotherBtn.addEventListener('click', function() {
-            form.reset();
-            f[6].value = emp.company_address || '';
-            form.hidden = false;
-            var succ = $('post-success');
-            if (succ) succ.hidden = true;
-          });
-        }
-      }
+    function notifyAdmins(text) {
+      users.filter(function (u) { return u.role === 'admin' && u.status === 'active'; }).forEach(function (u) { HG.notify(u.id, text, { link: 'admin.html?tab=5', kind: 'job' }); });
     }
 
-    /* TAB 4: QUẢN LÝ ỨNG VIÊN */
+    /* TAB 3: ĐĂNG TIN TUYỂN DỤNG – validate + xem trước trực tiếp + upload ảnh */
+    var form = $('post-form');
+    if (form && emp) {
+      var G = function (id) { return $(id); };
+      var MAX_IMG = 3 * 1024 * 1024, imgData = '';
+      var RULES = {
+        'pf-title':    { err: 'err-title',    check: function (v) { return !v.trim() ? 'Vui lòng nhập tên công việc.' : v.trim().length < 8 ? 'Tên công việc cần ít nhất 8 ký tự.' : v.length > 100 ? 'Tên công việc tối đa 100 ký tự.' : ''; } },
+        'pf-cat':      { err: 'err-cat',      check: function (v) { return v ? '' : 'Vui lòng chọn danh mục.'; } },
+        'pf-type':     { err: 'err-type',     check: function (v) { return v ? '' : 'Vui lòng chọn hình thức làm việc.'; } },
+        'pf-desc':     { err: 'err-desc',     check: function (v) { return !v.trim() ? 'Vui lòng nhập mô tả công việc.' : v.trim().length < 30 ? 'Mô tả cần ít nhất 30 ký tự (hiện ' + v.trim().length + ').' : ''; } },
+        'pf-reqs':     { err: 'err-reqs',     check: function (v) { return !v.trim() ? 'Vui lòng nhập yêu cầu ứng viên.' : v.trim().length < 15 ? 'Yêu cầu cần ít nhất 15 ký tự.' : ''; } },
+        'pf-salary':   { err: 'err-salary',   check: function (v) {
+            if (!v.trim()) return 'Vui lòng nhập mức lương.';
+            if (/thỏa thuận|thoả thuận/i.test(v)) return '';
+            var r = HG.parseSalary(v);
+            if (!r) return 'Mức lương chưa hợp lệ (ví dụ: 30–40K/giờ hoặc 4–5 triệu/tháng).';
+            return r.min <= 0 ? 'Mức lương phải lớn hơn 0.' : r.min > r.max ? '' : (r.max < 1000 ? 'Mức lương quá thấp, hãy kiểm tra lại đơn vị.' : '');
+        } },
+        'pf-area':     { err: 'err-area',     check: function (v) { return v ? '' : 'Vui lòng chọn khu vực làm việc.'; } },
+        'pf-slots':    { err: null,           check: function (v) { return !v || (+v >= 1 && +v <= 999 && /^\d+$/.test(v)) ? '' : 'Số lượng phải là số nguyên từ 1 đến 999.'; } },
+        'pf-deadline': { err: 'err-deadline', check: function (v) {
+            if (!v) return 'Vui lòng chọn hạn ứng tuyển.';
+            var t = new Date(); t.setHours(0, 0, 0, 0);
+            return new Date(v + 'T00:00:00') < t ? 'Hạn ứng tuyển không được ở quá khứ.' : '';
+        } }
+      };
+      var todayISO = (function () { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); })();
+      G('pf-deadline').min = todayISO;
+      G('pf-cat').innerHTML = '<option value="">-- Chọn danh mục --</option>' + job_categories.map(function (c) { return '<option value="' + c.id + '">' + E(c.name) + '</option>'; }).join('');
+      G('pf-address').value = emp.company_address || '';
+
+      function setErr(id, msg) {
+        var r = RULES[id], el = G(id), box = r.err ? G(r.err) : null;
+        if (!box && el) {                       // ô không có sẵn khung lỗi -> tạo thêm
+          box = el.parentNode.querySelector('.field-err');
+          if (!box) { box = document.createElement('small'); box.className = 'field-err'; el.parentNode.appendChild(box); }
+        }
+        if (box) box.textContent = msg;
+        if (el) { el.classList.toggle('invalid', !!msg); el.setAttribute('aria-invalid', msg ? 'true' : 'false'); }
+      }
+      function validateField(id) { var msg = RULES[id].check(G(id).value); setErr(id, msg); return !msg; }
+      function validateAll() {
+        var firstBad = null;
+        Object.keys(RULES).forEach(function (id) { if (!validateField(id) && !firstBad) firstBad = id; });
+        if (!validateImage(true) && !firstBad) firstBad = 'img-drop-label';
+        return firstBad;
+      }
+      var touched = {};
+      Object.keys(RULES).forEach(function (id) {
+        var el = G(id);
+        el.addEventListener('blur', function () { touched[id] = true; validateField(id); });
+        el.addEventListener('input', function () { if (touched[id]) validateField(id); });
+        el.addEventListener('change', function () { if (touched[id]) validateField(id); });
+      });
+
+      /* ---- Xem trước trực tiếp ---- */
+      var CAT_COLORS = ['#665CF6', '#FF8EC7', '#4F7DFF', '#A78BFA', '#22B8A7', '#3156C8'];
+      function catName() { var c = job_categories.filter(function (x) { return x.id === Number(G('pf-cat').value); })[0]; return c ? c.name : ''; }
+      function areaText() { var a = G('pf-area').value, ad = G('pf-address').value.trim(); return a ? (ad ? ad + ', ' + a : a) : ''; }
+      function renderPreview() {
+        var T = function (id, v, ph) { G(id).textContent = v && v.trim() ? v : ph; };
+        T('preview-title', G('pf-title').value, 'Tên công việc');
+        T('preview-cat', catName(), 'Danh mục');
+        T('preview-type-tag', G('pf-type').value, 'Hình thức');
+        T('preview-location', areaText(), 'Địa điểm');
+        T('preview-shift', G('pf-shift').value, 'Ca làm việc');
+        var sal = G('pf-salary').value.trim(), pr = HG.parseSalary(sal);
+        G('preview-salary').textContent = !sal ? 'Mức lương' : (pr && !/thỏa thuận/i.test(sal) ? HG.formatSalaryRange(pr.min, pr.max) : sal);
+        var dl = G('pf-deadline').value, days = dl ? Math.ceil((new Date(dl + 'T23:59:59') - new Date()) / 86400000) : null;
+        G('preview-deadline').textContent = dl ? 'Hạn: ' + HG.fmtDate(dl) + (days >= 0 ? ' (còn ' + days + ' ngày)' : '') : '';
+        G('preview-company').textContent = emp.company_name;
+        G('preview-logo').textContent = emp.company_name.charAt(0);
+        G('preview-logo').style.background = CAT_COLORS[(emp.id - 1) % CAT_COLORS.length];
+        G('preview-img-area').hidden = !imgData;
+        if (imgData) G('preview-img').src = imgData;
+      }
+      ['pf-title', 'pf-cat', 'pf-type', 'pf-salary', 'pf-area', 'pf-address', 'pf-shift', 'pf-deadline'].forEach(function (id) {
+        G(id).addEventListener('input', renderPreview); G(id).addEventListener('change', renderPreview);
+      });
+
+      /* ---- Upload ảnh: kéo thả / chọn file, kiểm tra, nén nhỏ để lưu localStorage ---- */
+      var imgInput = G('pf-img-input'), drop = G('img-drop-label'), chosenRow = G('img-chosen-row');
+      function validateImage(silent) { var m = G('err-img').textContent; return !m; }
+      function imgError(msg) { G('err-img').textContent = msg || ''; drop.classList.toggle('invalid', !!msg); }
+      function clearImage() {
+        imgData = ''; imgInput.value = ''; chosenRow.hidden = true; chosenRow.style.display = 'none'; imgError(''); renderPreview();
+      }
+      function fmtSize(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+      function handleFile(file) {
+        if (!file) return;
+        if (!/^image\/(png|jpe?g|webp|gif)$/i.test(file.type)) { imgError('Chỉ chấp nhận ảnh PNG, JPG, WEBP hoặc GIF.'); HG.toast('Tệp không phải là ảnh hợp lệ.', 'error'); imgInput.value = ''; return; }
+        if (file.size > MAX_IMG) { imgError('Ảnh quá lớn (' + fmtSize(file.size) + '). Tối đa 3MB.'); HG.toast('Ảnh vượt quá 3MB, vui lòng chọn ảnh khác.', 'error'); imgInput.value = ''; return; }
+        var reader = new FileReader();
+        reader.onerror = function () { imgError('Không đọc được tệp ảnh, hãy thử lại.'); };
+        reader.onload = function () {
+          var im = new Image();
+          im.onload = function () {
+            var max = 960, k = Math.min(1, max / Math.max(im.width, im.height));
+            var c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+            imgData = c.toDataURL('image/jpeg', 0.8);
+            G('img-thumb').src = imgData; G('img-fname').textContent = file.name; G('img-fsize').textContent = fmtSize(file.size);
+            chosenRow.hidden = false; chosenRow.style.display = 'flex'; imgError(''); renderPreview();
+            HG.toast('Đã thêm ảnh banner.', 'success');
+          };
+          im.onerror = function () { imgError('Tệp ảnh bị lỗi hoặc không đọc được.'); };
+          im.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      imgInput.addEventListener('change', function () { handleFile(imgInput.files[0]); });
+      G('img-remove-btn').addEventListener('click', function () { clearImage(); HG.toast('Đã xóa ảnh banner.', 'info'); });
+      ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragover'); }); });
+      ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('dragover'); }); });
+      drop.addEventListener('drop', function (e) { handleFile(e.dataTransfer && e.dataTransfer.files[0]); });
+
+      /* ---- Chế độ sửa tin + lưu nháp + gửi duyệt ---- */
+      var editId = null;
+      var submitBtn = G('post-submit-btn'), draftBtn = G('post-draft-btn');
+      var TYPE_BACK = { 'part-time': 'Part-time', 'full-time': 'Toàn thời gian', 'internship': 'Thực tập' };
+      var TYPE_MAP = { 'Part-time': 'part-time', 'Toàn thời gian': 'full-time', 'Thực tập': 'internship', 'Remote': 'part-time' };
+      function setEditMode(j) {
+        editId = j ? j.id : null;
+        var h1 = document.querySelector('[data-view="3"] h1'); if (h1) h1.textContent = j ? 'Chỉnh sửa tin tuyển dụng' : 'Đăng tin tuyển dụng';
+        var kick = document.querySelector('[data-view="3"] .dash-welcome span'); if (kick) kick.textContent = j ? 'CẬP NHẬT TIN #' + j.id : 'TẠO CƠ HỘI MỚI';
+        submitBtn.firstChild.textContent = j ? (j.status === 'draft' ? 'Gửi kiểm duyệt ' : 'Lưu & gửi duyệt lại ') : 'Đăng tuyển ngay ';
+        draftBtn.hidden = !!(j && j.status !== 'draft' && j.status !== 'rejected');
+      }
+      function fillSelect(sel, val) {
+        if (!val) { sel.value = ''; return; }
+        var has = [].some.call(sel.options, function (o) { return o.value === val; });
+        if (!has) { var o = document.createElement('option'); o.value = o.textContent = val; sel.appendChild(o); }
+        sel.value = val;
+      }
+      HG.openJobForm = function (id) {
+        var j = JOBS.filter(function (x) { return x.id === id; })[0]; if (!j) return;
+        form.reset(); touched = {}; Object.keys(RULES).forEach(function (k) { setErr(k, ''); }); imgError('');
+        G('pf-title').value = j.title || ''; G('pf-cat').value = j.category_id || '';
+        G('pf-type').value = TYPE_BACK[j.job_type] || ''; G('pf-desc').value = j.description || ''; G('pf-reqs').value = j.requirements || '';
+        G('pf-salary').value = j.salary_text || (j.salary_min ? HG.formatSalaryRange(j.salary_min, j.salary_max) : '');
+        var loc = j.location_text || HG.locationName(j.location_id) || '', area = '', addr = loc;
+        [].forEach.call(G('pf-area').options, function (o) { if (o.value && loc.indexOf(o.value) !== -1) { area = o.value; addr = loc.replace(o.value, '').replace(/[,\s]+$/, '').replace(/^[,\s]+/, ''); } });
+        if (!area && loc) { var parts = loc.split(','); area = parts[parts.length - 1].trim(); addr = parts.slice(0, -1).join(',').trim(); fillSelect(G('pf-area'), area); }
+        G('pf-area').value = area; G('pf-address').value = addr || emp.company_address || '';
+        fillSelect(G('pf-shift'), j.work_time && j.work_time !== 'Thỏa thuận' ? j.work_time : '');
+        G('pf-slots').value = j.quantity || ''; G('pf-deadline').value = j.end_date || '';
+        imgData = j.image_url || ''; if (imgData) { G('img-thumb').src = imgData; G('img-fname').textContent = 'Ảnh hiện tại'; G('img-fsize').textContent = ''; chosenRow.hidden = false; chosenRow.style.display = 'flex'; } else { chosenRow.hidden = true; chosenRow.style.display = 'none'; }
+        form.hidden = false; var succ = $('post-success'); if (succ) succ.hidden = true;
+        var layout = document.querySelector('.post-form-layout'); if (layout) layout.classList.remove('done');
+        setEditMode(j); renderPreview();
+        var tabBtn = document.querySelector('[data-tab="3"]'); if (tabBtn) tabBtn.click();
+        if (j.status === 'expired') showToast('Hãy chọn hạn ứng tuyển mới để gia hạn tin này.', 'info');
+        else if (j.status === 'rejected' && j.rejected_reason) showToast('Tin từng bị từ chối: ' + j.rejected_reason, 'info');
+      };
+
+      function collect(status) {
+        var sal = G('pf-salary').value.trim(), pr = !sal || /thỏa thuận|thoả thuận/i.test(sal) ? null : HG.parseSalary(sal);
+        return {
+          employer_id: emp.id, category_id: Number(G('pf-cat').value) || null, location_id: null,
+          location_text: areaText(), title: G('pf-title').value.trim(), description: G('pf-desc').value.trim(), requirements: G('pf-reqs').value.trim(),
+          salary_min: pr ? pr.min : 0, salary_max: pr ? pr.max : 0, salary_text: pr ? HG.formatSalaryRange(pr.min, pr.max) : (sal ? 'Thỏa thuận' : ''),
+          job_type: TYPE_MAP[G('pf-type').value] || '', work_time: G('pf-shift').value || 'Thỏa thuận', quantity: Number(G('pf-slots').value) || 1,
+          end_date: G('pf-deadline').value, image_url: imgData, status: status, rejected_reason: null
+        };
+      }
+      function persist(fields) {
+        if (HG.isGloballyBlocked(user.id)) { showToast('Tài khoản của bạn đang bị hạn chế đăng tin. Vui lòng liên hệ hỗ trợ.', 'error'); return false; }
+        if (editId) return HG.updateJob(editId, fields);
+        var nextId = Math.max.apply(null, JOBS.map(function (j) { return j.id; }).concat([0])) + 1;
+        return HG.addJob(Object.assign({ id: nextId, approved_by: null, approved_at: null, experience_level: 'Không yêu cầu', benefits: 'Đầy đủ đãi ngộ', start_date: '', created_at: HG.now(), updated_at: HG.now() }, fields));
+      }
+      function afterSave(status, title) {
+        renderEmployerOverview(); renderFullJobsList();
+        var wasEdit = !!editId; editId = null; setEditMode(null);
+        if (status === 'draft') {
+          showToast('Đã lưu bản nháp "' + title + '".');
+          form.reset(); touched = {}; clearImage(); G('pf-address').value = emp.company_address || ''; renderPreview();
+          var t2 = document.querySelector('[data-tab="2"]'); if (t2) t2.click();
+          return;
+        }
+        form.hidden = true;
+        var layout = document.querySelector('.post-form-layout'); if (layout) layout.classList.add('done');
+        var succ = $('post-success'); if (succ) { succ.hidden = false; succ.querySelector('h2').textContent = wasEdit ? 'Đã cập nhật tin!' : 'Đăng tin thành công!'; }
+        showToast(wasEdit ? 'Đã lưu thay đổi. Tin được gửi kiểm duyệt lại.' : 'Đăng tin thành công! Tin đang chờ kiểm duyệt.');
+        notifyAdmins('Tin "' + title + '" của ' + emp.company_name + ' đang chờ kiểm duyệt.');
+      }
+
+      /* Gửi kiểm duyệt (validate đầy đủ) */
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        Object.keys(RULES).forEach(function (id) { touched[id] = true; });
+        var bad = validateAll();
+        if (bad) {
+          var el = G(bad); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (el && el.focus && bad !== 'img-drop-label') el.focus();
+          showToast('Vui lòng kiểm tra lại các trường được đánh dấu.', 'error');
+          return;
+        }
+        HG.busy(submitBtn, function () {
+          var f = collect('pending');
+          if (persist(f) === false) { showToast('Không lưu được tin (bộ nhớ trình duyệt đầy). Hãy dùng ảnh nhỏ hơn hoặc bỏ ảnh.', 'error'); return; }
+          afterSave('pending', f.title);
+        }, 800);
+      });
+
+      /* Lưu nháp: chỉ cần tiêu đề; các ô đã nhập phải đúng định dạng */
+      draftBtn.addEventListener('click', function () {
+        touched['pf-title'] = true;
+        var t = G('pf-title').value.trim();
+        if (t.length < 8) { setErr('pf-title', t ? 'Tên công việc cần ít nhất 8 ký tự để lưu nháp.' : 'Hãy nhập tên công việc để lưu nháp.'); G('pf-title').focus(); showToast('Cần có tên công việc (≥ 8 ký tự) để lưu nháp.', 'error'); return; }
+        var badField = null;
+        ['pf-salary', 'pf-slots'].forEach(function (id) { if (G(id).value.trim() && !validateField(id) && !badField) badField = id; });
+        if (G('pf-deadline').value && !validateField('pf-deadline') && !badField) badField = 'pf-deadline';
+        if (badField) { G(badField).focus(); showToast('Một số ô đã nhập chưa hợp lệ, hãy sửa trước khi lưu nháp.', 'error'); return; }
+        HG.busy(draftBtn, function () {
+          var f = collect('draft');
+          if (persist(f) === false) { showToast('Không lưu được bản nháp (bộ nhớ đầy).', 'error'); return; }
+          afterSave('draft', f.title);
+        }, 600);
+      });
+
+      var cancelBtn = form.querySelector('.form-actions [data-goto-tab="2"]');
+      if (cancelBtn) cancelBtn.addEventListener('click', function () { editId = null; setEditMode(null); form.reset(); touched = {}; clearImage(); G('pf-address').value = emp.company_address || ''; renderPreview(); });
+
+      var postAnotherBtn = $('post-another-btn');
+      if (postAnotherBtn) {
+        postAnotherBtn.addEventListener('click', function () {
+          editId = null; setEditMode(null);
+          form.reset(); touched = {}; clearImage();
+          Object.keys(RULES).forEach(function (id) { setErr(id, ''); });
+          G('pf-address').value = emp.company_address || '';
+          form.hidden = false; renderPreview();
+          var layout = document.querySelector('.post-form-layout'); if (layout) layout.classList.remove('done');
+          var succ = $('post-success'); if (succ) succ.hidden = true;
+        });
+      }
+      setEditMode(null);
+      renderPreview();
+    }
+
+    /* TAB 4: QUẢN LÝ ỨNG VIÊN – Kanban / Danh sách, popup nhập lý do, cập nhật tức thời */
     var candFullEl = $('employer-candidates-full');
-    var activeCandFilter = 'all';
+    var activeCandFilter = 'all', candView = 'kanban', candJob = 'all';
+    var KB_COLS = [
+      { key: 'submitted', title: 'Mới nộp', sid: 1 }, { key: 'reviewing', title: 'Đã tiếp nhận', sid: 2 }, { key: 'interview', title: 'Phỏng vấn', sid: 3 },
+      { key: 'accepted', title: 'Trúng tuyển', sid: 4 }, { key: 'rejected', title: 'Từ chối', sid: 5 }
+    ];
+    var CAND_LABEL = { submitted: ['Mới nộp', 'pending'], reviewing: ['Đã tiếp nhận', 'reviewing'], interview: ['Phỏng vấn', 'interview'], accepted: ['Trúng tuyển', 'accepted'], rejected: ['Từ chối', 'rejected'], withdrawn: ['Ứng viên đã hủy', 'rejected'] };
+    var NEXT = { submitted: ['reviewing', 'interview', 'accepted', 'rejected'], reviewing: ['interview', 'accepted', 'rejected'], interview: ['accepted', 'rejected'], accepted: [], rejected: [], withdrawn: [] };
+    var SID = { reviewing: 2, interview: 3, accepted: 4, rejected: 5 };
+
+    function candInfo(a) {
+      var sp = byId(student_profiles, a.student_id) || { user_id: 0, university: '', major: '' };
+      var u = byId(users, sp.user_id) || { full_name: 'Ứng viên', email: '', phone: '' };
+      return { sp: sp, u: u, j: jobOf(a), st: statusName(a.status_id) };
+    }
+    function candJobsSelectHtml() {
+      return '<option value="all">Tất cả vị trí</option>' + getOwnJobs().filter(function (j) { return j.status !== 'draft'; }).map(function (j) { return '<option value="' + j.id + '"' + (String(candJob) === String(j.id) ? ' selected' : '') + '>' + E(j.title) + '</option>'; }).join('');
+    }
+    function candActionBtns(a, st) {
+      var next = NEXT[st] || [], out = '';
+      out += '<button type="button" class="cv-action-btn" data-view-cand="' + a.id + '">' + I('eye', 14) + ' Xem CV</button>';
+      if (next.indexOf('reviewing') !== -1) out += '<button type="button" class="cv-action-btn" data-cand-act="reviewing" data-id="' + a.id + '">' + I('check', 14) + ' Duyệt</button>';
+      if (next.indexOf('interview') !== -1) out += '<button type="button" class="cv-action-btn" data-cand-act="interview" data-id="' + a.id + '">' + I('calendar', 14) + ' Phỏng vấn</button>';
+      if (next.indexOf('accepted') !== -1) out += '<button type="button" class="cv-action-btn ok" data-cand-act="accepted" data-id="' + a.id + '">' + I('check', 14) + ' Nhận</button>';
+      if (next.indexOf('rejected') !== -1) out += '<button type="button" class="cv-action-btn danger" data-cand-act="rejected" data-id="' + a.id + '">' + I('x', 14) + ' Từ chối</button>';
+      if (HG.canUndoApp(a)) out += '<button type="button" class="cv-action-btn" data-undo-cand="' + a.id + '" title="Hoàn tác trong 10 phút">↶ Hoàn tác</button>';
+      if (st === 'rejected' || st === 'withdrawn' || st === 'submitted') out += '<button type="button" class="cv-action-btn danger" data-block-cand="' + a.id + '" title="Đưa vào danh sách đen">Chặn</button>';
+      return out;
+    }
+
+    function renderCandPills() {
+      var tabs = $('cand-filter-tabs'); if (!tabs) return;
+      var apps = candApps();
+      tabs.querySelectorAll('[data-cand-filter]').forEach(function (b) {
+        var k = b.dataset.candFilter, base = b.dataset.label || (b.dataset.label = b.textContent.trim());
+        b.innerHTML = E(base) + ' <span class="pill-count">' + (k === 'all' ? apps.length : apps.filter(function (a) { return statusName(a.status_id) === k; }).length) + '</span>';
+      });
+      tabs.hidden = candView === 'kanban';
+    }
+    function candApps() { return getOwnApps().filter(function (a) { return candJob === 'all' || String(a.job_id) === String(candJob); }); }
 
     function renderEmployerCandidates() {
       if (!candFullEl) return;
-      var apps = getOwnApps();
-      var filtered = apps.filter(function(a) {
-        var sName = statusName(a.status_id);
-        return activeCandFilter === 'all' || sName === activeCandFilter;
-      });
-
-      if (!filtered.length) {
-        candFullEl.innerHTML = '<div style="background:#fff; border:1px solid #edf0f8; border-radius:18px; padding:40px; text-align:center;">' +
-          '<span style="width:50px; height:50px; border-radius:50%; background:#eef2ff; color:#4f7dff; display:grid; place-items:center; margin:0 auto 12px;">' + I('users', 24) + '</span>' +
-          '<h3>Không có ứng viên nào ở trạng thái này</h3>' +
-          '<p style="color:#889; font-size:var(--fs-xs); margin-top:4px;">Khi sinh viên ứng tuyển, hồ sơ sẽ hiển thị tại đây.</p>' +
-          '</div>';
+      renderCandPills();
+      var all = candApps(), toolbar = $('cand-toolbar');
+      if (toolbar) {
+        toolbar.querySelectorAll('[data-cv]').forEach(function (b) { b.classList.toggle('active', b.dataset.cv === candView); });
+        var sel = $('cand-job-select'); if (sel) sel.innerHTML = candJobsSelectHtml();
+      }
+      if (!getOwnApps().length) {
+        candFullEl.innerHTML = HG.empty('users', 'Chưa có ứng viên nào', 'Khi sinh viên ứng tuyển vào tin của bạn, hồ sơ sẽ hiển thị tại đây để bạn xử lý.', '<button type="button" class="primary-btn small" data-goto-tab="3">Đăng tin tuyển dụng</button>');
         return;
       }
-
-      candFullEl.innerHTML = filtered.map(function(a) {
-        var sp = byId(student_profiles, a.student_id) || { user_id: 1, university: 'ĐH Bách Khoa', major: 'CNTT' };
-        var u = byId(users, sp.user_id) || { full_name: 'Nguyễn Văn A', email: 'student@example.com', phone: '0987654321' };
-        var j = jobOf(a);
-        var stName = statusName(a.status_id);
-        var st = STATUS[stName] || ['Đã nộp', 'pending'];
-
-        return '<div class="candidate-card-rich">' +
-          '<div class="cand-avatar-wrap">' +
-            '<span class="cand-avatar-img">' + initials(u.full_name) + '</span>' +
-            '<div>' +
-              '<h3 style="font-size: var(--fs-body); margin-bottom: 2px;">' + E(u.full_name) + '</h3>' +
-              '<p style="color: #6a748c; font-size: var(--fs-xs); margin: 0;">' +
-                'Vị trí ứng tuyển: <strong>' + E(j.title) + '</strong> · ' + E(sp.university || 'Sinh viên') +
-              '</p>' +
-              '<small style="color: #929bae; font-size: 11px;">Nộp lúc: ' + HG.fmtDate(a.applied_at) + ' · Email: ' + E(u.email) + ' · SĐT: ' + E(u.phone) + '</small>' +
-            '</div>' +
-          '</div>' +
-          '<div class="cand-actions-wrap">' +
-            '<span class="status ' + st[1] + '">' + st[0] + '</span>' +
-            '<button type="button" class="cv-action-btn" data-view-cand="' + a.id + '" title="Xem chi tiết">' + I('eye', 14) + ' Xem CV</button>' +
-            '<button type="button" class="cv-action-btn" data-interview-cand="' + a.id + '" title="Mời phỏng vấn">' + I('calendar', 14) + ' Mời PV</button>' +
-            '<button type="button" class="cv-action-btn" style="color:#2ba788;" data-accept-cand="' + a.id + '" title="Nhận việc">' + I('check', 14) + ' Nhận</button>' +
-            '<button type="button" class="cv-action-btn danger" data-reject-cand="' + a.id + '" title="Từ chối">' + I('x', 14) + '</button>' +
-          '</div>' +
-        '</div>';
+      if (candView === 'kanban') {
+        candFullEl.innerHTML = '<div class="kanban">' + KB_COLS.map(function (col) {
+          var list = all.filter(function (a) { return statusName(a.status_id) === col.key; });
+          return '<div class="kb-col ' + col.key + '" data-col="' + col.key + '"><div class="kb-head"><strong>' + col.title + '</strong><span>' + list.length + '</span></div><div class="kb-body">' +
+            (list.map(function (a) {
+              var c = candInfo(a), draggable = (NEXT[c.st] || []).length > 0;
+              return '<div class="kb-card" data-aid="' + a.id + '"' + (draggable ? ' draggable="true"' : '') + '>' +
+                '<div class="kb-who"><span class="cand-avatar-img sm">' + initials(c.u.full_name) + '</span><div><b>' + E(c.u.full_name) + '</b><small>' + E(c.sp.university || 'Sinh viên') + '</small></div></div>' +
+                '<div class="kb-job">' + E(c.j.title) + '</div><small class="kb-date">Nộp ' + HG.fmtDate(a.applied_at) + '</small>' +
+                (c.st === 'interview' && a.interview_at ? '<small class="kb-meta">' + I('calendar', 12) + ' ' + E(String(a.interview_at).replace('T', ' ')) + '</small>' : '') +
+                (c.st === 'rejected' && a.status_reason ? '<small class="kb-meta bad">Lý do: ' + E(a.status_reason) + '</small>' : '') +
+                '<div class="kb-actions">' + candActionBtns(a, c.st) + '</div></div>';
+            }).join('') || '<div class="kb-empty">Chưa có hồ sơ</div>') + '</div></div>';
+        }).join('') + '</div>';
+        return;
+      }
+      var filtered = all.filter(function (a) { return activeCandFilter === 'all' || statusName(a.status_id) === activeCandFilter; });
+      if (!filtered.length) { candFullEl.innerHTML = HG.empty('users', 'Không có ứng viên ở trạng thái này', 'Chọn tab khác để xem các hồ sơ còn lại.'); return; }
+      candFullEl.innerHTML = filtered.map(function (a) {
+        var c = candInfo(a), st = CAND_LABEL[c.st] || CAND_LABEL.submitted;
+        return '<div class="candidate-card-rich"><div class="cand-avatar-wrap"><span class="cand-avatar-img">' + initials(c.u.full_name) + '</span><div>' +
+          '<h3 style="font-size: var(--fs-body); margin-bottom: 2px;">' + E(c.u.full_name) + '</h3>' +
+          '<p style="color: #6a748c; font-size: var(--fs-xs); margin: 0;">Vị trí ứng tuyển: <strong>' + E(c.j.title) + '</strong> · ' + E(c.sp.university || 'Sinh viên') + '</p>' +
+          '<small style="color: #929bae; font-size: 11px;">Nộp lúc: ' + HG.fmtDate(a.applied_at) + ' · Email: ' + E(c.u.email) + ' · SĐT: ' + E(c.u.phone) + '</small>' +
+          (c.st === 'rejected' && a.status_reason ? '<small class="reason-line" style="display:block">Lý do: ' + E(a.status_reason) + '</small>' : '') + '</div></div>' +
+          '<div class="cand-actions-wrap"><span class="status ' + st[1] + '">' + st[0] + '</span>' + candActionBtns(a, c.st) + '</div></div>';
       }).join('');
     }
     renderEmployerCandidates();
 
-    function openCandidateModal(aid) {
-      var a = HG.applications().filter(function(x){ return x.id === aid; })[0];
-      if (!a) return;
-      var sp = byId(student_profiles, a.student_id) || { user_id: 1, university: 'ĐH Bách Khoa', major: 'CNTT', bio: '' };
-      var u = byId(users, sp.user_id) || { full_name: 'Nguyễn Văn A', email: 'student@example.com', phone: '0987654321' };
-      var j = jobOf(a);
-      var stName = statusName(a.status_id);
-      var st = STATUS[stName] || ['Đã nộp', 'pending'];
+    /* Popup nhập lý do / lịch phỏng vấn */
+    function askStatus(kind, a) {
+      var c = candInfo(a);
+      var cfg = {
+        reviewing: { title: 'Duyệt hồ sơ', btn: 'Duyệt hồ sơ', field: false, hint: 'Hồ sơ sẽ chuyển sang "Đã tiếp nhận" và sinh viên được thông báo.' },
+        interview: { title: 'Mời phỏng vấn', btn: 'Gửi lời mời', date: true, hint: 'Chọn thời gian phỏng vấn, sinh viên sẽ nhận thông báo ngay.' },
+        accepted: { title: 'Xác nhận trúng tuyển', btn: 'Xác nhận nhận việc', field: false, hint: 'Sinh viên sẽ được thông báo đã trúng tuyển.' },
+        rejected: { title: 'Từ chối hồ sơ', btn: 'Từ chối', reason: true, danger: true, hint: 'Lý do sẽ được gửi tới sinh viên.' }
+      }[kind];
+      return new Promise(function (resolve) {
+        var done = false;
+        HG.modal.open({
+          className: 'modal-reason', dismissible: true, labelledBy: 'reason-title',
+          html: '<h2 id="reason-title">' + cfg.title + '</h2><p style="margin-bottom:14px"><strong>' + E(c.u.full_name) + '</strong> · ' + E(c.j.title) + '</p>' +
+            '<form data-form novalidate>' +
+            (cfg.date ? '<label>Thời gian phỏng vấn <span class="req-star">*</span><input type="datetime-local" name="when"></label>' : '') +
+            (cfg.reason ? '<label>Lý do từ chối <span class="req-star">*</span><textarea name="reason" rows="4" maxlength="300" placeholder="Ví dụ: Lịch rảnh của bạn chưa phù hợp với ca làm của vị trí này."></textarea></label><div class="quick-reasons">' +
+              ['Chưa phù hợp yêu cầu vị trí', 'Lịch rảnh không khớp ca làm', 'Đã tuyển đủ số lượng'].map(function (r) { return '<button type="button" data-qr="' + E(r) + '">' + E(r) + '</button>'; }).join('') + '</div>' : '') +
+            (!cfg.date && !cfg.reason ? '<label>Ghi chú gửi ứng viên (không bắt buộc)<textarea name="note" rows="3" maxlength="300"></textarea></label>' : '') +
+            '<p class="form-error" role="alert"></p><p class="hint-line">' + cfg.hint + '</p>' +
+            '<div class="modal-actions"><button type="button" class="secondary-btn" data-cancel>Hủy</button><button type="submit" class="primary-btn' + (cfg.danger ? ' danger' : '') + '">' + cfg.btn + '</button></div></form>',
+          onMount: function (api) {
+            var f = api.box.querySelector('form'), err = api.box.querySelector('.form-error');
+            if (cfg.date) { var d = new Date(Date.now() + 2 * 86400000); d.setHours(9, 0, 0, 0); var p = function (n) { return ('0' + n).slice(-2); }; f.when.value = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T09:00'; f.when.min = new Date().toISOString().slice(0, 16); }
+            api.box.querySelector('[data-cancel]').addEventListener('click', function () { api.close(false); });
+            api.box.addEventListener('click', function (e) { var q = e.target.closest('[data-qr]'); if (q && f.reason) { f.reason.value = q.dataset.qr; f.reason.focus(); } });
+            f.addEventListener('submit', function (e) {
+              e.preventDefault(); err.textContent = '';
+              var meta = {};
+              if (cfg.reason) { var r = f.reason.value.trim(); if (r.length < 10) { err.textContent = 'Vui lòng nhập lý do từ chối (ít nhất 10 ký tự).'; f.reason.focus(); return; } meta.reason = r; }
+              if (cfg.date) { if (!f.when.value) { err.textContent = 'Vui lòng chọn thời gian phỏng vấn.'; return; } if (new Date(f.when.value) < new Date()) { err.textContent = 'Thời gian phỏng vấn phải ở tương lai.'; return; } meta.interview_at = f.when.value; }
+              if (f.note && f.note.value.trim()) meta.reason = f.note.value.trim();
+              var btn = f.querySelector('[type=submit]');
+              HG.busy(btn, function () { done = true; api.close(true); resolve(meta); }, 650);
+            });
+          },
+          onClose: function () { if (!done) resolve(null); }
+        });
+      });
+    }
 
+    function changeCandStatus(aid, kind) {
+      var a = HG.applications().filter(function (x) { return x.id === aid; })[0]; if (!a) return;
+      var cur = statusName(a.status_id);
+      if ((NEXT[cur] || []).indexOf(kind) === -1) { showToast('Hồ sơ này không thể chuyển sang trạng thái đó.', 'error'); renderEmployerCandidates(); return; }
+      askStatus(kind, a).then(function (meta) {
+        if (!meta) return;
+        if (!HG.setAppStatus(aid, SID[kind], meta)) { showToast('Không cập nhật được trạng thái, vui lòng thử lại.', 'error'); return; }
+        renderEmployerOverview(); renderEmployerCandidates();
+        showToast({ reviewing: 'Đã duyệt hồ sơ ứng viên.', interview: 'Đã gửi lời mời phỏng vấn tới sinh viên!', accepted: 'Ứng viên đã trúng tuyển!', rejected: 'Đã từ chối hồ sơ và gửi lý do cho sinh viên.' }[kind]);
+      });
+    }
+
+    function openCandidateModal(aid) {
+      var a = HG.applications().filter(function (x) { return x.id === aid; })[0]; if (!a) return;
+      var c = candInfo(a), st = CAND_LABEL[c.st] || CAND_LABEL.submitted;
+      var vk = 'hg_viewed_' + a.id + '_' + HG.now().slice(0, 10);
+      if (!HG.read(vk, false)) { HG.store.set(vk, true); HG.notify(c.u.id, emp.company_name + ' vừa xem hồ sơ ứng tuyển "' + c.j.title + '" của bạn.', { link: 'student.html?tab=4', kind: 'app', pref: 'viewed' }); }
       HG.modal.open({
         className: 'modal-candidate-detail',
-        html: '<div style="padding: 10px;">' +
-          '<div style="display:flex; align-items:center; gap:16px; margin-bottom:18px;">' +
-            '<span class="cand-avatar-img" style="width:56px; height:56px; font-size:20px;">' + initials(u.full_name) + '</span>' +
-            '<div>' +
-              '<h2 style="font-size: var(--fs-h4); margin:0 0 4px;">' + E(u.full_name) + '</h2>' +
-              '<p style="color:#717b94; font-size:var(--fs-xs); margin:0;">Ứng tuyển: <strong>' + E(j.title) + '</strong></p>' +
-            '</div>' +
-          '</div>' +
+        html: '<div style="padding: 10px;"><div style="display:flex; align-items:center; gap:16px; margin-bottom:18px;"><span class="cand-avatar-img" style="width:56px; height:56px; font-size:20px;">' + initials(c.u.full_name) + '</span><div>' +
+          '<h2 style="font-size: var(--fs-h4); margin:0 0 4px;">' + E(c.u.full_name) + '</h2><p style="color:#717b94; font-size:var(--fs-xs); margin:0;">Ứng tuyển: <strong>' + E(c.j.title) + '</strong></p></div></div>' +
           '<div style="background:#f8f9fe; border:1px solid #e2e6f4; border-radius:14px; padding:18px; margin-bottom:18px; font-size:var(--fs-body-sm); line-height:1.7;">' +
-            '<div><strong>Trường đại học:</strong> ' + E(sp.university || 'Chưa cập nhật') + '</div>' +
-            '<div><strong>Chuyên ngành:</strong> ' + E(sp.major || 'Chưa cập nhật') + '</div>' +
-            '<div><strong>Email liên hệ:</strong> ' + E(u.email) + '</div>' +
-            '<div><strong>Số điện thoại:</strong> ' + E(u.phone) + '</div>' +
-            '<div><strong>Ngày nộp hồ sơ:</strong> ' + HG.fmtDate(a.applied_at) + '</div>' +
-            '<div style="margin-top:10px;"><strong>Lời nhắn từ sinh viên:</strong><br><em style="color:#505c78;">"' + E(a.cover_letter || 'Tôi rất mong muốn được thử sức và đóng góp tại công ty.') + '"</em></div>' +
-          '</div>' +
-          '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">' +
-            '<span>Trạng thái: <i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
-            '<div style="display:flex; gap:8px;">' +
-              '<button type="button" class="primary-btn small" data-modal-interview="' + a.id + '">Mời phỏng vấn</button>' +
-              '<button type="button" class="secondary-btn small" data-close>Đóng</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>',
-        onMount: function(api) {
-          var btn = api.box.querySelector('[data-modal-interview]');
-          if (btn) {
-            btn.addEventListener('click', function() {
-              a.status_id = 3; /* interview */
-              renderEmployerOverview();
-              renderEmployerCandidates();
-              showToast('Đã gửi thông báo mời phỏng vấn!');
-              api.close();
-            });
-          }
+          '<div><strong>Trường đại học:</strong> ' + E(c.sp.university || 'Chưa cập nhật') + '</div><div><strong>Chuyên ngành:</strong> ' + E(c.sp.major || 'Chưa cập nhật') + '</div>' +
+          '<div><strong>Email liên hệ:</strong> ' + E(c.u.email) + '</div><div><strong>Số điện thoại:</strong> ' + E(c.u.phone) + '</div><div><strong>Ngày nộp hồ sơ:</strong> ' + HG.fmtDate(a.applied_at) + '</div>' +
+          '<div style="margin-top:10px;"><strong>Lời nhắn từ sinh viên:</strong><br><em style="color:#505c78;">"' + E(a.cover_letter || 'Sinh viên không để lại lời nhắn.') + '"</em></div></div>' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><span>Trạng thái: <i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
+          '<div style="display:flex; gap:8px; flex-wrap:wrap;">' + candActionBtns(a, c.st).replace(/<button type="button" class="cv-action-btn" data-view-cand[^>]*>.*?<\/button>/, '') + '<button type="button" class="secondary-btn small" data-close>Đóng</button></div></div></div>',
+        onMount: function (api) {
+          api.box.addEventListener('click', function (e) { var b = e.target.closest('[data-cand-act]'); if (b) { api.close(); changeCandStatus(Number(b.dataset.id), b.dataset.candAct); } });
         }
       });
     }
 
-    document.addEventListener('click', function(e) {
-      var vBtn = e.target.closest('[data-view-cand]');
-      if (vBtn) {
-        var aid = Number(vBtn.dataset.viewCand);
-        openCandidateModal(aid);
-      }
-    });
-
+    var candToolbar = $('cand-toolbar');
+    if (candToolbar) {
+      candToolbar.addEventListener('click', function (e) { var b = e.target.closest('[data-cv]'); if (b) { candView = b.dataset.cv; renderEmployerCandidates(); } });
+      candToolbar.addEventListener('change', function (e) { if (e.target.id === 'cand-job-select') { candJob = e.target.value; renderEmployerCandidates(); } });
+    }
     var candFilterTabs = $('cand-filter-tabs');
     if (candFilterTabs) {
-      candFilterTabs.addEventListener('click', function(e) {
+      candFilterTabs.addEventListener('click', function (e) {
         var b = e.target.closest('[data-cand-filter]');
         if (b) {
-          candFilterTabs.querySelectorAll('.dash-pill').forEach(function(p){ p.classList.remove('active'); });
-          b.classList.add('active');
-          activeCandFilter = b.dataset.candFilter;
-          renderEmployerCandidates();
+          candFilterTabs.querySelectorAll('.dash-pill').forEach(function (p) { p.classList.remove('active'); });
+          b.classList.add('active'); activeCandFilter = b.dataset.candFilter; renderEmployerCandidates();
         }
       });
     }
-
     if (candFullEl) {
-      candFullEl.addEventListener('click', function(e) {
-        var intBtn = e.target.closest('[data-interview-cand]');
-        if (intBtn) {
-          var aid = Number(intBtn.dataset.interviewCand);
-          var target = HG.applications().filter(function(x){ return x.id === aid; })[0];
-          if (target) {
-            target.status_id = 3; /* interview */
-            showToast('Đã gửi thông báo mời phỏng vấn tới sinh viên!');
-            renderEmployerOverview();
-            renderEmployerCandidates();
-          }
-          return;
-        }
-
-        var accBtn = e.target.closest('[data-accept-cand]');
-        if (accBtn) {
-          var aid = Number(accBtn.dataset.acceptCand);
-          var target = HG.applications().filter(function(x){ return x.id === aid; })[0];
-          if (target) {
-            target.status_id = 4; /* accepted */
-            showToast('Đã chuyển trạng thái: Ứng viên trúng tuyển!');
-            renderEmployerOverview();
-            renderEmployerCandidates();
-          }
-          return;
-        }
-
-        var rejBtn = e.target.closest('[data-reject-cand]');
-        if (rejBtn) {
-          var aid = Number(rejBtn.dataset.rejectCand);
-          var target = HG.applications().filter(function(x){ return x.id === aid; })[0];
-          if (target) {
-            target.status_id = 5; /* rejected */
-            showToast('Đã từ chối đơn ứng tuyển.');
-            renderEmployerOverview();
-            renderEmployerCandidates();
-          }
-          return;
-        }
+      candFullEl.addEventListener('click', function (e) {
+        var v = e.target.closest('[data-view-cand]'); if (v) { openCandidateModal(Number(v.dataset.viewCand)); return; }
+        var ud = e.target.closest('[data-undo-cand]');
+        if (ud) { HG.busy(ud, function () { if (HG.undoApp(Number(ud.dataset.undoCand))) { renderEmployerOverview(); renderEmployerCandidates(); showToast('Đã hoàn tác trạng thái hồ sơ.', 'info'); } else showToast('Đã quá thời gian hoàn tác (10 phút).', 'error'); }, 400); return; }
+        var act = e.target.closest('[data-cand-act]'); if (act) changeCandStatus(Number(act.dataset.id), act.dataset.candAct);
+      });
+      /* Kéo thả thẻ giữa các cột Kanban */
+      var dragId = null;
+      candFullEl.addEventListener('dragstart', function (e) { var c = e.target.closest('.kb-card'); if (c) { dragId = Number(c.dataset.aid); c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(dragId)); } catch (x) {} } });
+      candFullEl.addEventListener('dragend', function (e) { var c = e.target.closest('.kb-card'); if (c) c.classList.remove('dragging'); candFullEl.querySelectorAll('.kb-col.over').forEach(function (x) { x.classList.remove('over'); }); });
+      candFullEl.addEventListener('dragover', function (e) { var col = e.target.closest('.kb-col'); if (col && dragId) { e.preventDefault(); col.classList.add('over'); } });
+      candFullEl.addEventListener('dragleave', function (e) { var col = e.target.closest('.kb-col'); if (col && !col.contains(e.relatedTarget)) col.classList.remove('over'); });
+      candFullEl.addEventListener('drop', function (e) {
+        var col = e.target.closest('.kb-col'); if (!col || !dragId) return; e.preventDefault(); col.classList.remove('over');
+        var id = dragId; dragId = null;
+        var a = HG.applications().filter(function (x) { return x.id === id; })[0]; if (!a) return;
+        var to = col.dataset.col, cur = statusName(a.status_id);
+        if (to === cur) return;
+        if ((NEXT[cur] || []).indexOf(to) === -1) { showToast('Không thể chuyển hồ sơ từ "' + CAND_LABEL[cur][0] + '" sang "' + CAND_LABEL[to][0] + '".', 'error'); return; }
+        changeCandStatus(id, to);
       });
     }
+    /* Hồ sơ mới / ứng viên rút đơn: cập nhật ngay */
+    function refreshCands() { renderEmployerOverview(); renderEmployerCandidates(); }
+    window.addEventListener('storage', function (e) { if (e.key === 'hg_app_patches' || e.key === 'hg_apps') refreshCands(); });
+    document.addEventListener('hg:notify', refreshCands); document.addEventListener('hg:social', refreshCands);
 
     /* TAB 5: CÀI ĐẶT */
     var empPw = $('emp-pw-form'), empPref = $('emp-pref-form');
     if (empPw) {
       empPw.addEventListener('submit', function(e) {
         e.preventDefault();
-        showToast('Đã đổi mật khẩu tài khoản tuyển dụng thành công!');
+        var ins = empPw.querySelectorAll('input[type=password]');
+        [].forEach.call(ins, function (i) { i.classList.remove('invalid'); });
+        var r = HG.changePassword(ins[0].value, ins[1].value, ins[2].value);
+        if (r.error) { ins[r.field].classList.add('invalid'); ins[r.field].focus(); showToast(r.error, 'error'); return; }
+        showToast('Đã đổi mật khẩu thành công! Lần đăng nhập sau hãy dùng mật khẩu mới.');
         empPw.reset();
       });
     }
@@ -1129,7 +1436,40 @@
       setStat('jobs', JOBS.length, 'Tổng số tin');
       var repStat = $('stat-report-count');
       if (repStat) repStat.textContent = reports.filter(function(r){ return r.status === 'pending'; }).length;
+      var done = JOBS.filter(function (j) { return j.status === 'approved' || j.status === 'rejected' || j.status === 'locked' || j.status === 'expired'; });
+      var rate = $('stat-approve-rate'); if (rate) rate.textContent = done.length ? Math.round(JOBS.filter(function (j) { return j.status === 'approved' || j.status === 'expired'; }).length / done.length * 100) + '%' : '—';
+      var appsEl = $('stat-apps-total'); if (appsEl) appsEl.textContent = HG.applications().length;
+      var tc = topCategory(); var hot = $('stat-hot-cat'); if (hot) { hot.textContent = tc ? tc.name : '—'; var hs = $('stat-hot-sub'); if (hs) hs.textContent = tc ? tc.n + ' tin (' + Math.round(tc.n / Math.max(1, JOBS.length) * 100) + '%)' : 'Chưa có dữ liệu'; }
+      drawAdminCharts();
     };
+
+    function topCategory() {
+      var cnt = {}; JOBS.forEach(function (j) { cnt[j.category_id] = (cnt[j.category_id] || 0) + 1; });
+      var best = null; Object.keys(cnt).forEach(function (k) { var c = byId(job_categories, Number(k)); if (c && (!best || cnt[k] > best.n)) best = { name: c.name, n: cnt[k] }; });
+      return best;
+    }
+    /* Biểu đồ thật: số người dùng (SV / NTD) tích lũy 6 tháng + tin theo ngành nghề */
+    function drawAdminCharts() {
+      var bars = document.querySelector('.admin-chart .bar-set');
+      if (bars) {
+        var now2 = new Date(), months = [];
+        for (var i = 5; i >= 0; i--) { var d = new Date(now2.getFullYear(), now2.getMonth() - i + 1, 1); months.push({ label: 'T' + (new Date(d.getFullYear(), d.getMonth() - 1, 1).getMonth() + 1), end: d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-01' }); }
+        var series = months.map(function (m) {
+          var f = function (r) { return users.filter(function (u) { return u.role === r || (u.orig_role === r); }).filter(function (u) { return (u.created_at || '').slice(0, 10) < m.end; }).length; };
+          return { label: m.label, s: f('student'), e: f('employer') };
+        });
+        var max = Math.max.apply(null, series.map(function (x) { return Math.max(x.s, x.e); }).concat([1]));
+        bars.innerHTML = series.map(function (x) {
+          return '<span title="' + x.label + ': ' + x.s + ' sinh viên, ' + x.e + ' nhà tuyển dụng"><i style="height:' + Math.max(4, x.s / max * 100) + '%"></i><b style="height:' + Math.max(4, x.e / max * 100) + '%"></b><em class="bar-val">' + x.s + '/' + x.e + '</em><u class="bar-lab">' + x.label + '</u></span>';
+        }).join('');
+      }
+      var cc = $('admin-cat-chart');
+      if (cc) {
+        var rows = job_categories.map(function (c) { return { name: c.name, n: JOBS.filter(function (j) { return j.category_id === c.id && j.status !== 'draft'; }).length }; }).sort(function (a, b) { return b.n - a.n; });
+        var mx = Math.max.apply(null, rows.map(function (r) { return r.n; }).concat([1]));
+        cc.innerHTML = rows.length ? rows.map(function (r) { return '<div class="hbar"><span>' + E(r.name) + '</span><div><i style="width:' + (r.n / mx * 100) + '%"></i></div><b>' + r.n + '</b></div>'; }).join('') : HG.empty('chart', 'Chưa có danh mục nào');
+      }
+    }
     updateAdminStats();
 
     /* Báo cáo gần đây ở Tab 0 */
@@ -1147,60 +1487,81 @@
     var mod = $('moderation-rows'), pending = $('pending-count');
     var fullModEl = $('admin-full-mod-rows');
     var activeModFilter = 'pending';
-    var MOD = { pending: ['Chờ duyệt', 'pending'], approved: ['Đã duyệt', 'accepted'], rejected: ['Từ chối', ''] };
+    var deny = function (p) { if (HG.can(p)) return false; showToast('Bạn không có quyền "' + HG.PERMS[p] + '". Liên hệ Admin gốc để được cấp.', 'error'); return true; };
+    var userBtns = function (id) { return '<button type="button" class="cv-action-btn" data-user-detail="' + id + '">Chi tiết</button><button type="button" class="cv-action-btn" data-reset-pw="' + id + '">Đặt lại MK</button><button type="button" class="cv-action-btn danger" data-del-user="' + id + '" title="Xóa tài khoản">' + I('trash', 14) + '</button>'; };
+    var MOD = { pending: ['Chờ duyệt', 'pending'], approved: ['Đã duyệt', 'accepted'], rejected: ['Từ chối', 'rejected'], locked: ['Đã khóa', 'rejected'], expired: ['Hết hạn', 'expired'], draft: ['Nháp', 'draft'] };
+    var modJobs = function () { return JOBS.filter(function (j) { return j.status !== 'draft'; }); };   /* nháp chưa gửi duyệt -> admin không thấy */
+
+    /* Nút thao tác theo trạng thái: chờ duyệt -> Duyệt / Từ chối; đã duyệt -> Khóa; từ chối/khóa -> Duyệt lại */
+    function modButtons(j, withText) {
+      var t = function (x) { return withText ? ' ' + x : ''; };
+      if (j.status === 'pending') return '<button class="approve" data-act="approved" data-id="' + j.id + '" title="Phê duyệt">' + I('check', 16) + t('Duyệt') + '</button>' +
+        '<button class="cv-action-btn danger" data-act="rejected" data-id="' + j.id + '" title="Từ chối (nhập lý do)">' + I('x', 16) + t('Từ chối') + '</button>';
+      if (j.status === 'approved') return '<button class="cv-action-btn danger" data-act="locked" data-id="' + j.id + '" title="Khóa tin (nhập lý do)">' + I('shield', 16) + t('Khóa') + '</button>';
+      if (j.status === 'rejected' || j.status === 'locked') return '<button class="approve" data-act="approved" data-id="' + j.id + '" title="Duyệt lại">' + I('check', 16) + t('Duyệt lại') + '</button>';
+      return '<span style="color:#9aa2b2">—</span>';
+    }
 
     var drawModeration = function () {
-      var order = { pending: 0, approved: 1, rejected: 2 };
-      var sorted = JOBS.slice().sort(function (a, b) { return order[a.status] - order[b.status] || b.id - a.id; });
+      var order = { pending: 0, approved: 1, rejected: 2, locked: 3, expired: 4 };
+      var sorted = modJobs().sort(function (a, b) { return (order[a.status] == null ? 9 : order[a.status]) - (order[b.status] == null ? 9 : order[b.status]) || b.id - a.id; });
 
       if (mod) {
-        mod.innerHTML = sorted.slice(0, 5).map(function (j) {
+        mod.innerHTML = sorted.length ? sorted.slice(0, 5).map(function (j) {
           var c = companyOf(j), cat = byId(job_categories, j.category_id), st = MOD[j.status] || ['Chờ duyệt', 'pending'];
           return '<div class="table-row"><span class="company-cell"><i class="company-logo" style="background:' + HG.employerColor(c.id) + '">' + E(c.company_name.charAt(0)) + '</i>' +
             '<span><b>' + E(j.title) + '</b><small>' + E(c.company_name) + '</small></span></span>' +
             '<span>' + HG.fmtDate(j.created_at) + '</span><span>' + E(cat ? cat.name : '') + '</span>' +
             '<span><i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
-            '<span class="table-actions"><button data-act="rejected" data-id="' + j.id + '" title="Từ chối">' + I('x', 17) + '</button>' +
-            '<button class="approve" data-act="approved" data-id="' + j.id + '" title="Duyệt">' + I('check', 17) + '</button></span></div>';
-        }).join('');
+            '<span class="table-actions">' + modButtons(j, false) + '</span></div>';
+        }).join('') : HG.empty('shield', 'Chưa có tin nào cần kiểm duyệt', 'Khi nhà tuyển dụng gửi tin, chúng sẽ xuất hiện tại đây.');
       }
 
       var pendCount = JOBS.filter(function (j) { return j.status === 'pending'; }).length;
       if (pending) pending.textContent = pendCount + ' tin đang chờ';
 
       if (fullModEl) {
-        var filteredMod = sorted.filter(function(j) {
-          return activeModFilter === 'all' || j.status === activeModFilter;
+        var filteredMod = sorted.filter(function (j) {
+          return activeModFilter === 'all' || j.status === activeModFilter || (activeModFilter === 'rejected' && j.status === 'locked');
         });
-
         if (!filteredMod.length) {
-          fullModEl.innerHTML = '<div style="padding: 24px; text-align:center; color:#889;">Không có tin tuyển dụng nào trong danh sách này.</div>';
+          fullModEl.innerHTML = HG.empty('shield', activeModFilter === 'pending' ? 'Không còn tin nào chờ duyệt' : 'Không có tin nào trong mục này', activeModFilter === 'pending' ? 'Tuyệt vời! Bạn đã xử lý hết các tin đang chờ.' : 'Chọn tab khác để xem các tin còn lại.');
         } else {
           fullModEl.innerHTML = filteredMod.map(function (j) {
             var c = companyOf(j), cat = byId(job_categories, j.category_id), st = MOD[j.status] || ['Chờ duyệt', 'pending'];
+            var reason = (j.status === 'rejected' || j.status === 'locked') && j.rejected_reason ? '<small class="reason-line">Lý do: ' + E(j.rejected_reason) + '</small>' : '';
             return '<div class="table-row"><span class="company-cell"><i class="company-logo" style="background:' + HG.employerColor(c.id) + '">' + E(c.company_name.charAt(0)) + '</i>' +
-              '<span><b>' + E(j.title) + '</b><small>' + E(c.company_name) + '</small></span></span>' +
+              '<span><b>' + E(j.title) + '</b><small>' + E(c.company_name) + '</small>' + reason + '</span></span>' +
               '<span>' + HG.fmtDate(j.created_at) + '</span><span>' + E(cat ? cat.name : '') + '</span>' +
-              '<span>' + E(j.salary_text || 'Thỏa thuận') + '</span>' +
+              '<span>' + E(HG.jobSalary(j)) + '</span>' +
               '<span><i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
-              '<span class="table-actions">' +
-                '<button class="approve" data-act="approved" data-id="' + j.id + '" title="Phê duyệt">' + I('check', 16) + ' Duyệt</button>' +
-                '<button class="cv-action-btn danger" data-act="rejected" data-id="' + j.id + '" title="Từ chối">' + I('x', 16) + ' Từ chối</button>' +
-              '</span></div>';
+              '<span class="table-actions">' + modButtons(j, true) + '</span></div>';
           }).join('');
         }
       }
     };
 
+    /* Duyệt / Từ chối / Khóa: từ chối & khóa bắt buộc nhập lý do */
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-act]');
       if (!b) return;
-      var jid = Number(b.dataset.id), act = b.dataset.act;
-      HG.setJobStatus(jid, act);
-      drawModeration();
-      renderAdminAllJobs();
-      updateAdminStats();
-      showToast(act === 'approved' ? 'Đã phê duyệt tin tuyển dụng #' + jid : 'Đã từ chối tin tuyển dụng #' + jid);
+      var jid = Number(b.dataset.id), act = b.dataset.act, job = byId(JOBS, jid);
+      if (!job || deny('moderate')) return;
+      var finish = function (reason) {
+        HG.busy(b, function () {
+          if (!HG.setJobStatus(jid, act, reason)) { showToast('Không cập nhật được tin, vui lòng thử lại.', 'error'); return; }
+          drawModeration(); renderAdminAllJobs(); updateAdminStats();
+          showToast({ approved: 'Đã phê duyệt tin "' + job.title + '".', rejected: 'Đã từ chối tin và gửi lý do cho nhà tuyển dụng.', locked: 'Đã khóa tin "' + job.title + '".' }[act]);
+        }, 650);
+      };
+      if (act === 'approved') { finish(); return; }
+      HG.askReason({
+        title: act === 'locked' ? 'Khóa tin tuyển dụng' : 'Từ chối tin tuyển dụng',
+        subtitle: '<strong>' + E(job.title) + '</strong> · ' + E(companyOf(job).company_name),
+        label: act === 'locked' ? 'Lý do khóa tin' : 'Lý do từ chối', placeholder: 'Nêu rõ lý do để nhà tuyển dụng chỉnh sửa lại tin…',
+        quick: act === 'locked' ? ['Có báo cáo vi phạm từ người dùng', 'Thông tin tuyển dụng không chính xác', 'Nghi ngờ lừa đảo / thu phí ứng viên'] : ['Thông tin mô tả chưa rõ ràng', 'Mức lương không hợp lý / thiếu thông tin', 'Nội dung vi phạm quy định đăng tin'],
+        confirmText: act === 'locked' ? 'Khóa tin' : 'Từ chối tin', danger: true
+      }).then(function (reason) { if (reason) finish(reason); });
     });
 
     var modFilterTabs = $('admin-mod-filter-tabs');
@@ -1224,7 +1585,7 @@
     function renderAdminStudents() {
       if (!stuTableEl) return;
       var q = (stuSearch ? stuSearch.value : '').trim().toLowerCase();
-      var stus = users.filter(function(u) { return u.role === 'student'; });
+      var stus = users.filter(function(u) { return u.role === 'student' && u.status !== 'deleted'; });
 
       var filtered = stus.filter(function(u) {
         var p = student_profiles.filter(function(x){ return x.user_id === u.id; })[0] || {};
@@ -1250,7 +1611,7 @@
           '<span class="table-actions">' +
             '<button type="button" class="cv-action-btn' + (isActive ? ' danger' : '') + '" data-toggle-user="' + u.id + '">' +
               (isActive ? 'Khóa' : 'Mở khóa') +
-            '</button>' +
+            '</button>' + userBtns(u.id) +
           '</span>' +
         '</div>';
       }).join('');
@@ -1265,7 +1626,7 @@
     function renderAdminEmployers() {
       if (!empTableEl) return;
       var q = (empSearch ? empSearch.value : '').trim().toLowerCase();
-      var emps = users.filter(function(u) { return u.role === 'employer'; });
+      var emps = users.filter(function(u) { return u.role === 'employer' && u.status !== 'deleted'; });
 
       var filtered = emps.filter(function(u) {
         var ep = employer_profiles.filter(function(x){ return x.user_id === u.id; })[0] || {};
@@ -1288,9 +1649,10 @@
           '<span>' + E(ep.representative_name || u.full_name) + '</span>' +
           '<span>' + E(ep.industry || 'Bán lẻ') + '<br><small>' + E(u.email) + '</small></span>' +
           '<span><b>' + jCount + '</b> tin</span>' +
-          '<span><i class="' + (isVer ? 'admin-badge-active' : 'admin-badge-locked') + '">' + (isVer ? 'Đã xác minh' : 'Chưa xác minh') + '</i></span>' +
+          '<span><i class="' + (isVer ? 'admin-badge-active' : 'admin-badge-locked') + '">' + (u.status !== 'active' ? 'Đang khóa' : isVer ? 'Đã xác minh' : 'Chưa xác minh') + '</i></span>' +
           '<span class="table-actions">' +
             '<button type="button" class="cv-action-btn" data-verify-emp="' + ep.id + '">' + (isVer ? 'Hủy duyệt' : 'Xác minh') + '</button>' +
+            '<button type="button" class="cv-action-btn' + (u.status === 'active' ? ' danger' : '') + '" data-toggle-user="' + u.id + '">' + (u.status === 'active' ? 'Khóa' : 'Mở khóa') + '</button>' + userBtns(u.id) +
           '</span>' +
         '</div>';
       }).join('');
@@ -1299,27 +1661,42 @@
     if (empSearch) empSearch.addEventListener('input', renderAdminEmployers);
 
     /* Event delegation for admin tables */
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       var uBtn = e.target.closest('[data-toggle-user]');
       if (uBtn) {
+        if (deny('users')) return;
         var uid = Number(uBtn.dataset.toggleUser);
         var targetUser = byId(users, uid);
-        if (targetUser) {
-          targetUser.status = (targetUser.status === 'active' ? 'blocked' : 'active');
-          renderAdminStudents();
-          showToast('Đã cập nhật trạng thái tài khoản #' + uid);
-        }
+        if (!targetUser) return;
+        if (targetUser.id === HG.ROOT_ADMIN_ID) { showToast('Không thể khóa tài khoản Admin gốc.', 'error'); return; }
+        var lock = targetUser.status === 'active';
+        HG.confirm({
+          title: lock ? 'Khóa tài khoản?' : 'Mở khóa tài khoản?',
+          message: lock ? 'Tài khoản "' + targetUser.full_name + '" sẽ không thể đăng nhập cho đến khi được mở khóa.' : 'Tài khoản "' + targetUser.full_name + '" sẽ có thể đăng nhập trở lại.',
+          confirmText: lock ? 'Khóa tài khoản' : 'Mở khóa', cancelText: 'Hủy', danger: lock
+        }).then(function (ok) {
+          if (!ok) return;
+          HG.busy(uBtn, function () {
+            HG.setUserStatus(uid, lock ? 'blocked' : 'active');
+            renderAdminStudents(); renderAdminEmployers(); updateAdminStats();
+            showToast(lock ? 'Đã khóa tài khoản ' + targetUser.full_name + '.' : 'Đã mở khóa tài khoản ' + targetUser.full_name + '.');
+          }, 600);
+        });
         return;
       }
 
       var vBtn = e.target.closest('[data-verify-emp]');
       if (vBtn) {
+        if (deny('users')) return;
         var epid = Number(vBtn.dataset.verifyEmp);
         var targetEmp = byId(employer_profiles, epid);
         if (targetEmp) {
-          targetEmp.verified = !targetEmp.verified;
-          renderAdminEmployers();
-          showToast('Đã cập nhật trạng thái xác thực doanh nghiệp!');
+          HG.busy(vBtn, function () {
+            HG.setEmpVerified(epid, !targetEmp.verified);
+            renderAdminEmployers();
+            showToast(targetEmp.verified ? 'Đã xác minh doanh nghiệp ' + targetEmp.company_name + '.' : 'Đã hủy xác minh doanh nghiệp.');
+            HG.notify(targetEmp.user_id, targetEmp.verified ? 'Doanh nghiệp của bạn đã được xác minh.' : 'Xác minh doanh nghiệp của bạn đã bị hủy.', { link: 'employer.html?tab=1', kind: 'info' });
+          }, 600);
         }
         return;
       }
@@ -1333,15 +1710,15 @@
     function renderAdminAllJobs() {
       if (!ajTableEl) return;
       var q = (ajSearch ? ajSearch.value : '').trim().toLowerCase();
-      var filtered = JOBS.filter(function(j) {
+      var filtered = modJobs().filter(function(j) {
         var c = companyOf(j);
-        var matchStatus = activeAjFilter === 'all' || j.status === activeAjFilter;
+        var matchStatus = activeAjFilter === 'all' || j.status === activeAjFilter || (activeAjFilter === 'rejected' && j.status === 'locked');
         var matchQuery = !q || j.title.toLowerCase().indexOf(q) !== -1 || c.company_name.toLowerCase().indexOf(q) !== -1;
         return matchStatus && matchQuery;
       });
 
       if (!filtered.length) {
-        ajTableEl.innerHTML = '<div style="padding: 24px; text-align: center; color: #889;">Không tìm thấy tin tuyển dụng nào.</div>';
+        ajTableEl.innerHTML = HG.empty('briefcase', 'Không tìm thấy tin tuyển dụng nào', 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.');
         return;
       }
 
@@ -1351,10 +1728,12 @@
           '<span><b>' + E(j.title) + '</b><small>Mã tin: #' + j.id + ' · ' + HG.typeLabel(j.job_type) + '</small></span>' +
           '<span>' + E(c.company_name) + '</span>' +
           '<span>' + E(cat ? cat.name : '') + '</span>' +
-          '<span>' + E(j.salary_text || 'Thỏa thuận') + '</span>' +
+          '<span>' + E(HG.jobSalary(j)) + '</span>' +
           '<span><i class="status ' + st[1] + '">' + st[0] + '</i></span>' +
           '<span class="table-actions">' +
-            '<a class="cv-action-btn" href="job-detail.html?id=' + j.id + '" title="Xem">' + I('eye', 14) + '</a>' +
+            (j.status === 'approved' ? '<a class="cv-action-btn" href="job-detail.html?id=' + j.id + '" title="Xem">' + I('eye', 14) + '</a>' : '') +
+            (j.status === 'approved' ? '<button type="button" class="cv-action-btn danger" data-act="locked" data-id="' + j.id + '" title="Khóa tin">' + I('shield', 14) + '</button>' : '') +
+            ((j.status === 'locked' || j.status === 'rejected') ? '<button type="button" class="cv-action-btn" data-act="approved" data-id="' + j.id + '" title="Duyệt lại">' + I('check', 14) + '</button>' : '') +
             '<button type="button" class="cv-action-btn danger" data-del-admin-job="' + j.id + '" title="Xóa">' + I('trash', 14) + '</button>' +
           '</span>' +
         '</div>';
@@ -1363,6 +1742,7 @@
     renderAdminAllJobs();
 
     if (ajSearch) ajSearch.addEventListener('input', renderAdminAllJobs);
+    window.addEventListener('storage', function (e) { if (/^hg_(new_jobs|job_status|job_deleted|user_status|categories|role_overrides)$/.test(e.key || '')) location.reload(); });
     var ajFilterTabs = $('admin-jobs-filter-tabs');
     if (ajFilterTabs) {
       ajFilterTabs.addEventListener('click', function(e) {
@@ -1380,7 +1760,8 @@
       ajTableEl.addEventListener('click', function(e) {
         var delBtn = e.target.closest('[data-del-admin-job]');
         if (delBtn) {
-          var jid = Number(delBtn.dataset.delAdminJob);
+          if (deny('moderate')) return;
+        var jid = Number(delBtn.dataset.delAdminJob);
           HG.confirm({
             title: 'Xóa bài đăng tuyển dụng?',
             message: 'Bài đăng #' + jid + ' sẽ bị xóa khỏi toàn hệ thống.',
@@ -1388,24 +1769,25 @@
             cancelText: 'Hủy bỏ',
             danger: true
           }).then(function(ok) {
-            if (ok) {
-              var idx = JOBS.findIndex(function(x){ return x.id === jid; });
-              if (idx !== -1) JOBS.splice(idx, 1);
-              renderAdminAllJobs();
-              drawModeration();
-              updateAdminStats();
+            if (!ok) return;
+            var dj = byId(JOBS, jid), ep = dj && byId(employer_profiles, dj.employer_id);
+            HG.busy(delBtn, function () {
+              if (!HG.deleteJob(jid)) { showToast('Không xóa được bài đăng.', 'error'); return; }
+              if (ep) HG.notify(ep.user_id, 'Tin "' + dj.title + '" đã bị quản trị viên xóa khỏi hệ thống.', { link: 'employer.html?tab=2', kind: 'job' });
+              renderAdminAllJobs(); drawModeration(); updateAdminStats();
               showToast('Đã xóa bài đăng #' + jid);
-            }
+            }, 600);
           });
         }
       });
     }
 
     /* TAB 4: BÁO CÁO VI PHẠM */
-    var repTableEl = $('admin-reports-table');
+    var repTableEl = $('admin-reports-table-legacy');
     function renderAdminReports() {
       if (!repTableEl) return;
       var RTYPE = { job: 'Tin tuyển dụng', employer: 'Doanh nghiệp', student: 'Sinh viên' };
+      if (!reports.length) { repTableEl.innerHTML = HG.empty('shield', 'Chưa có báo cáo vi phạm nào', 'Các phản ánh từ người dùng sẽ hiển thị tại đây.'); return; }
       repTableEl.innerHTML = reports.map(function(r) {
         var isRes = r.status === 'resolved';
         return '<div class="table-row">' +
@@ -1429,11 +1811,11 @@
           var rid = Number(rBtn.dataset.resolveRep);
           var targetRep = byId(reports, rid);
           if (targetRep) {
-            targetRep.status = 'resolved';
-            targetRep.admin_note = 'Quản trị viên đã xử lý phản ánh.';
-            renderAdminReports();
-            updateAdminStats();
-            showToast('Đã xử lý xong báo cáo #' + rid);
+            HG.busy(rBtn, function () {
+              HG.setReportStatus(rid, { status: 'resolved', admin_note: 'Quản trị viên đã xử lý phản ánh.' });
+              renderAdminReports(); updateAdminStats();
+              showToast('Đã xử lý xong báo cáo #' + rid);
+            }, 600);
           }
         }
       });
