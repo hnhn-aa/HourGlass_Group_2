@@ -1,0 +1,16 @@
+# Yêu cầu Python >= 3.10 (khuyến nghị 3.11–3.13). Cài: pip install -r requirements.txt
+fastapi==0.162.2
+uvicorn==0.54.0
+SQLAlchemy==2.1.8
+PyMySQL>=1.1.1        # chỉ cần khi DATABASE_URL dùng MySQL
+pydantic==2.14.3
+pydantic-settings==2.15.0
+email-validator==2.3.0
+python-dotenv==1.2.4
+python-multipart>=0.0.20   # 0.0.33 đã bỏ Python 3.10 → để pip tự chọn bản hợp với máy
+bcrypt==5.0.0
+PyJWT==2.10.1
+alembic>=1.14.0
+slowapi>=0.1.9
+httpx>=0.27          # TestClient cho tests/test_e2e_flow.py
+pytest>=8.0          # chạy toàn bộ kiểm thử: python -m pytest tests -v

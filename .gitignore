@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+HourGlass/venv/
+HourGlass/apps/venv/
+apps/venv/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Scratch & Logs
+*.log
+scratch/
+apps/brain/
+
+
+# D? li?u ch?y th? c?c b? (không dua lên Git)
+*.db
+/uploads/
+/static/
+backend/uploads/jobs/
+.e2e_out.html
+backend/uploads/cv_*.pdf
+
+# Vercel CLI
+.vercel
+
+
+# Database backups created by backend/scripts/clean_demo_data.py (may contain personal data)
+backend/backups/

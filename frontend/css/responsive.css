@@ -1,0 +1,288 @@
+/* =========================================================
+   responsive.css – Hoàn thiện hiển thị cho máy tính bảng & điện thoại
+   Breakpoint: ≤ 768px (tablet dọc / mobile lớn) và ≤ 480px (điện thoại).
+   Nạp SAU CÙNG trên mọi trang để tinh chỉnh, không thay đổi giao diện desktop.
+   Đi kèm js/responsive.js (gắn nhãn cột cho bảng, bọc <table> trong vùng cuộn).
+   ========================================================= */
+
+/* ---------- 0. Dùng chung ---------- */
+img, video, iframe { max-width: 100%; }
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: 16px;
+}
+.table-scroll:focus-visible { outline: 2px solid #8f86ff; outline-offset: 2px; }
+.table-scroll > table { margin-top: 0; }
+/* Nút tìm kiếm thu gọn trên header dashboard: chỉ hiện ở ≤768px */
+.dash-search-live { position: relative; display: inline-flex; align-items: center; }
+.dash-search-toggle { display: none; }
+/* Modal dài (hồ sơ ứng viên, xem CV, xử lý khiếu nại…) luôn cuộn được, không bị cắt */
+.modal-backdrop { overflow-y: auto; overscroll-behavior: contain; }
+.modal { max-width: 100%; margin: auto; }
+
+/* Kanban ứng viên (< 1366px): cột giữ tối thiểu 225px, cuộn ngang mượt có điểm dừng mềm theo cột */
+@media (max-width: 1365.98px) {
+  .kanban { scroll-snap-type: x proximity; scroll-padding-inline: 2px; }
+  .kanban > .kb-col { scroll-snap-align: start; }
+}
+
+/* =========================================================
+   1. ≤ 768px – MÁY TÍNH BẢNG DỌC & ĐIỆN THOẠI
+   ========================================================= */
+@media (max-width: 768px) {
+  /* Chống phóng to tự động trên iOS khi chạm vào ô nhập (chữ < 16px) */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select, textarea { font-size: 16px; }
+
+  /* ---------- 1.1 Header công khai + hamburger menu ---------- */
+  .site-header .header-inner { gap: 12px; }
+  .site-header .logo { min-width: 0; }
+  .mobile-menu {
+    width: 44px; height: 44px; display: grid; place-items: center;
+    margin-right: -8px; border-radius: 12px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-menu:focus-visible { outline: 2px solid #8f86ff; }
+  .header-inner nav {
+    display: flex;                       /* luôn render để có hiệu ứng mở/đóng mượt */
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transform: translateY(-8px) scale(.98); transform-origin: top right;
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+    max-height: calc(100vh - 90px); max-height: calc(100dvh - 90px);
+    overflow-y: auto; overscroll-behavior: contain;
+    z-index: 60;
+  }
+  .header-inner nav.open {
+    opacity: 1; visibility: visible; pointer-events: auto; transform: none;
+    transition: opacity .2s ease, transform .2s ease, visibility 0s;
+  }
+  .header-inner nav a, .header-inner nav .nav-auth {
+    min-height: 44px; border-radius: 10px;
+    white-space: normal; overflow-wrap: anywhere;
+  }
+  .header-right-cluster > .lang-switch--desktop { display: none; }
+  .header-inner nav .nav-lang-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 6px;
+    margin-top: 4px;
+    border-top: 1px solid #eef0f6;
+  }
+  .header-inner nav a:hover, .header-inner nav a.active { background: #f4f5ff; }
+  .header-inner nav a.active:after { display: none; }
+  /* Lớp nền mờ phía sau menu – chạm để đóng (xử lý trong main.js) */
+  body.nav-open::after {
+    content: ""; position: fixed; inset: 0; z-index: 40;
+    background: rgba(25, 31, 55, .28);
+    animation: rwdFade .2s ease;
+  }
+  .site-header { z-index: 55; }
+  body.nav-open .site-header { background: #fff; }
+
+  /* ---------- 1.2 Header dashboard ---------- */
+  .dash-header { gap: 8px; position: sticky; }
+  .dash-header > div { min-width: 0; gap: 8px; }
+  .dash-header > div:first-child { flex: 1 1 auto; }
+  .dash-header .mobile-brand { min-width: 0; overflow: hidden; }
+  .dash-header .dash-search-live { display: none; }
+  .dash-search-toggle {
+    display: grid; place-items: center; width: 40px; height: 40px; flex: none;
+    border: 0; background: none; color: #445; border-radius: 12px; cursor: pointer;
+  }
+  .dash-search-toggle:focus-visible { outline: 2px solid #8f86ff; }
+  .dash-header.search-open .dash-search-live {
+    display: flex; position: absolute; left: 0; right: 0; top: 100%;
+    padding: 10px 14px; background: #fff; border-bottom: 1px solid #e9ebf3;
+    box-shadow: 0 12px 24px rgba(35, 45, 90, .08); animation: rwdFade .15s ease;
+  }
+  .dash-header.search-open .dash-search-live svg { left: 26px !important; }
+  .dash-header.search-open .dash-search-live button { right: 20px !important; }
+  .dash-header.search-open .dash-search-input { width: 100%; min-width: 0; }
+  .dash-header .notify, .dash-header .dash-avatar { flex: none; }
+  .dash-header > div.dash-notify-dropdown:last-child,
+  .dash-notify-dropdown {
+    width: auto !important; left: 12px; right: 12px !important;
+    max-height: 70vh; overflow-y: auto;
+  }
+
+  /* ---------- 1.3 Nội dung dashboard ---------- */
+  .dash-welcome { flex-wrap: wrap; }
+  .dash-welcome h1 { overflow-wrap: anywhere; }
+  .dash-filter-bar { align-items: stretch; }
+  .dash-filter-bar .dash-search-input,
+  .dash-content .dash-search-input { width: 100%; min-width: 0; flex: 1 1 100%; }
+  .dash-pills { max-width: 100%; }
+  .panel-title { flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+  .panel-title > div { flex: 1 1 220px; min-width: 0; }
+  .panel-title .primary-btn, .panel-title .secondary-btn { flex: none; white-space: nowrap; }
+
+  /* ---------- 1.4 Bảng quản lý (Admin / Nhà tuyển dụng / Sinh viên) → dạng thẻ ----------
+     Nhãn cột lấy từ data-label (js/responsive.js gắn tự động theo hàng tiêu đề). */
+  .manage-table { overflow-x: visible; }
+  .manage-table .table-head,
+  .manage-table .table-head:has(> :nth-child(6)),
+  .manage-table .table-head.cat-grid,
+  .manage-table .table-head.role-grid { display: none; }
+  .manage-table .table-row,
+  .manage-table .table-row:has(> :nth-child(6)),
+  .manage-table .table-row.cat-grid,
+  .manage-table .table-row.role-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px;
+    min-width: 0; padding: 14px 16px; margin-bottom: 12px;
+    background: #fff; border: 1px solid #edf0f8; border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(35, 45, 90, .04);
+  }
+  .manage-table .table-row:last-child { margin-bottom: 0; }
+  .rwd-table .table-row > [data-label]:not([data-label=""]):not(.rwd-cell-title):not(.rwd-cell-actions) {
+    display: grid; grid-template-columns: minmax(92px, 34%) minmax(0, 1fr);
+    gap: 10px; align-items: start; text-align: left;
+  }
+  .rwd-table .table-row > [data-label]:not([data-label=""]):not(.rwd-cell-title):not(.rwd-cell-actions)::before {
+    content: attr(data-label);
+    color: #9199aa; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    padding-top: 2px;
+    overflow-wrap: break-word;
+  }
+  /* Giá trị của ô (js/responsive.js gói vào .rwd-val) – giữ nguyên cách trình bày bên trong */
+  .rwd-table .table-row > [data-label] > .rwd-val { display: block; min-width: 0; }
+  .rwd-table .table-row > [data-label] > .rwd-val > small { display: block; margin-top: 2px; }
+  .rwd-table .table-row > .rwd-cell-title {
+    padding-bottom: 8px; border-bottom: 1px dashed #edf0f7; font-size: var(--fs-body-sm);
+  }
+  .rwd-table .table-row > .rwd-cell-title b { font-size: var(--fs-body-sm); }
+  .manage-table .table-actions,
+  .rwd-table .table-row > .rwd-cell-actions {
+    display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px;
+    padding-top: 10px; border-top: 1px dashed #edf0f7;
+  }
+  .manage-table .table-actions button,
+  .manage-table .table-actions a { min-height: 36px; min-width: 36px; }
+
+  /* Bảng ca rảnh (<table> thật) – cuộn ngang trong khung, cột đầu cố định */
+  .table-scroll { border: 1px solid #e9edf8; margin-top: 14px; }
+  .table-scroll > .avail-table { border: 0; border-radius: 0; min-width: 560px; overflow: visible; }
+  .avail-table th, .avail-table td { padding: 10px 8px; }
+  .avail-table th:first-child, .avail-table td:first-child {
+    position: sticky; left: 0; z-index: 1; background: #f8f9fe;
+    min-width: 108px; text-align: left; box-shadow: 1px 0 0 #edf0f8;
+  }
+  .avail-check-box { width: 22px; height: 22px; }
+
+  /* Kanban ứng viên: cuộn ngang có điểm dừng theo cột */
+  .kanban { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+  .kanban > * { scroll-snap-align: start; }
+
+  /* ---------- 1.5 Form (đăng tin, hồ sơ, cài đặt) ---------- */
+  .form-grid, .profile-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .post-form input, .post-form select, .post-form textarea { width: 100%; max-width: 100%; min-width: 0; }
+  .form-actions { flex-wrap: wrap; }
+  .form-actions > * { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+  .form-actions .primary-btn { flex-basis: 100%; order: -1; }   /* nút chính lên đầu, rộng hết hàng */
+
+  /* ---------- 1.6 Tìm việc: thanh kết quả & bộ lọc ---------- */
+  .results-head { flex-wrap: wrap; gap: 10px; align-items: center; }
+  .results-head > div:first-child { flex: 1 1 100%; }
+  .results-head .filter-mobile { flex: 1 1 0; justify-content: center; white-space: nowrap; min-height: 42px; }
+  .results-head select { flex: 1 1 0; min-width: 0; min-height: 42px; }
+  .jobs-quick-tabs { scroll-snap-type: x proximity; }
+
+  /* ---------- 1.7 Tiêu đề mục, chi tiết việc làm, footer ---------- */
+  .section-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .section-head h2 { overflow-wrap: anywhere; }
+  .detail-card h1 { overflow-wrap: anywhere; }
+  .footer-bottom { flex-wrap: wrap; }
+  .footer-bottom a { white-space: nowrap; }
+
+  /* Lưới 2 cột chuyển 1 cột: ô lưới được co nhỏ hơn nội dung dài (email, địa chỉ…) */
+  .story-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .story-grid > * { min-width: 0; overflow-wrap: anywhere; }
+
+  /* ---------- 1.8 Modal ---------- */
+  .modal-backdrop { padding: 14px; }
+  .modal { padding: 24px 20px; }
+  .modal .modal-close { width: 40px; height: 40px; }
+  .modal input[type="file"] { width: 100%; max-width: 100%; }
+}
+
+/* =========================================================
+   2. ≤ 480px – ĐIỆN THOẠI
+   ========================================================= */
+@media (max-width: 480px) {
+  /* Header công khai: menu phủ gần hết chiều ngang, chữ to dễ chạm */
+  .header-inner nav { left: 10px; right: 10px; padding: 8px; }
+  .header-inner nav a, .header-inner nav .nav-auth { font-size: var(--fs-body); }
+
+  /* Header dashboard: thu gọn logo chữ để đủ chỗ cho chuông, avatar, đăng xuất */
+  .dash-header { padding: 0 10px; }
+  .dash-header .mobile-brand .logo > span:last-child { font-size: 17px; }
+  .dash-header > div:last-child { gap: 4px; }
+  .dash-menu { flex: none; }
+
+  /* Nội dung dashboard */
+  .dash-welcome > .primary-btn, .dash-welcome > .secondary-btn { width: 100%; justify-content: center; }
+  .dash-filter-bar > .secondary-btn, .dash-filter-bar > .primary-btn { width: 100%; justify-content: center; }
+  .dash-pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+  .dash-pills::-webkit-scrollbar { display: none; }
+  .dash-pill { flex: none; white-space: nowrap; }
+  .panel { padding: 16px; }
+  .panel-title .primary-btn, .panel-title .secondary-btn { width: 100%; justify-content: center; }
+
+  /* Bảng dạng thẻ: nhãn nằm trên giá trị cho đỡ chật */
+  .rwd-table .table-row > [data-label]:not([data-label=""]):not(.rwd-cell-title):not(.rwd-cell-actions) {
+    grid-template-columns: minmax(0, 1fr); gap: 2px;
+  }
+  .manage-table .table-row { padding: 12px 14px; }
+
+  /* Danh sách thẻ (việc đã lưu, đơn ứng tuyển, CV) – nút bấm dàn đều, dễ chạm */
+  .saved-job-actions, .app-detailed-status > div, .cv-actions-right { width: 100%; }
+  .saved-job-actions > .primary-btn, .saved-job-actions > a.secondary-btn { flex: 1 1 auto; justify-content: center; }
+  .cv-card-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .cv-actions-right { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Form: các nút xếp dọc, rộng hết hàng */
+  .form-actions { flex-direction: column; align-items: stretch; }
+  .form-actions > * { width: 100%; }
+
+  /* Tìm việc */
+  .results-head .filter-mobile, .results-head select { flex: 1 1 calc(50% - 5px); }
+
+  /* Modal dạng bottom-sheet: trượt từ dưới lên, dùng trọn chiều ngang */
+  .modal-backdrop { padding: 0; place-items: end center; align-items: end; }
+  .modal {
+    width: 100%; max-width: 100%;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 16px calc(18px + env(safe-area-inset-bottom));
+    max-height: 92vh; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain;
+    margin: 0; animation: rwdSheetIn .25s ease;
+  }
+  .modal .modal-close { top: 12px; right: 12px; }
+  .modal h2 { padding-right: 40px; overflow-wrap: anywhere; }
+  .modal-actions { grid-template-columns: 1fr; }
+  .modal-actions .primary-btn { order: -1; }
+
+  /* Footer */
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Khối có padding lớn (Giới thiệu – Liên hệ, Danh mục nổi bật): thu padding, cho phép co ô lưới */
+  .hot-cats-section { padding: 22px 16px; border-radius: 20px; }
+  .story-grid > div[style*="padding: 30px"] { padding: 20px 16px !important; }
+  #contact form .primary-btn { align-self: stretch !important; justify-content: center; }
+}
+
+@keyframes rwdFade { from { opacity: 0; } }
+@keyframes rwdSheetIn { from { transform: translateY(40px); opacity: .4; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .header-inner nav, .modal, body.nav-open::after { transition: none !important; animation: none !important; }
+  .kanban { scroll-behavior: auto; }
+  .kb-card, .kb-card:hover { transition: none; transform: none; }
+}
+
+/* Ô giá trị chứa nhiều nút (vd. cột phê duyệt) – có khoảng cách, tự xuống dòng */
+@media (max-width: 768px) {
+  .rwd-table .table-row > [data-label] > .rwd-val:has(> button, > a) { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+}

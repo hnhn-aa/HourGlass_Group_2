@@ -1,0 +1,117 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/index.html",
+      "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "/auth.html?mode=signin",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "/auth.html?mode=signup",
+      "permanent": false
+    },
+    {
+      "source": "/jobs",
+      "destination": "/jobs.html",
+      "permanent": false
+    },
+    {
+      "source": "/jobs/:id(\\d+)",
+      "destination": "/job-detail.html?id=:id",
+      "permanent": false
+    },
+    {
+      "source": "/categories",
+      "destination": "/categories.html",
+      "permanent": false
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html",
+      "permanent": false
+    },
+    {
+      "source": "/student",
+      "destination": "/student.html",
+      "permanent": false
+    },
+    {
+      "source": "/employer",
+      "destination": "/employer.html",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(css|js)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/js/config.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
