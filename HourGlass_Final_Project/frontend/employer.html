@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="emp.page_title">Trung tâm tuyển dụng – HourGlass</title>
+<meta name="description" content="HourGlass - nền tảng việc làm dành riêng cho sinh viên.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/ai-assistant.css">
+<script src="js/config.js"></script>
+</head>
+<body data-role="employer">
+<script src="js/icons.js"></script>
+<div class="dashboard">
+<aside class="dash-sidebar" id="dash-sidebar">
+<div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
+<div class="role-label" data-i18n="emp.role_label">TRUNG TÂM TUYỂN DỤNG</div>
+<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span data-i18n="emp.tab_overview">Tổng quan</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span data-i18n="emp.tab_profile">Hồ sơ công ty</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span data-i18n="emp.tab_jobs">Quản lý tin tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="emp.tab_post">Đăng tin tuyển dụng</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span data-i18n="emp.tab_candidates">Quản lý ứng viên</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-settings"/></svg><span data-i18n="emp.tab_settings">Cài đặt tài khoản</span></button></nav>
+<div class="sidebar-help ai-help"><span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span><strong data-i18n="common.ai_title">Trợ lý AI HourGlass</strong><small data-i18n="common.ai_sub">Hỏi đáp &amp; hỗ trợ 24/7</small><button type="button" data-ai-open aria-controls="hg-ai-panel" aria-expanded="false"><span data-i18n="common.ai_chat">Chat ngay</span> <svg class="icon" width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+</aside>
+<div class="dash-backdrop" id="dash-backdrop" hidden></div>
+<div class="dash-main">
+<header class="dash-header">
+<div><button class="dash-menu" id="dash-menu" type="button" aria-label="Mở menu" data-i18n-title="nav.menu" aria-controls="dash-sidebar"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-menu"/></svg></button><span class="mobile-brand"><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></span><button class="dash-search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg><span data-i18n="common.quick_search">Tìm kiếm nhanh...</span></button></div>
+<div><button class="notify"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bell"/></svg><i></i></button><span class="dash-avatar"></span><span class="user-name"><strong></strong><small data-i18n="nav.role.employer">Nhà tuyển dụng</small></span></div>
+</header>
+<main class="dash-content">
+  <!-- TAB 0: TỔNG QUAN -->
+  <div class="dash-view" data-view="0">
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="emp.welcome_kicker">TỔNG QUAN TUYỂN DỤNG</span>
+        <h1><span data-i18n="emp.hello_prefix">Chào</span> <span data-company></span>!</h1>
+        <p data-i18n="emp.welcome_sub">Các tin của bạn đang hoạt động hiệu quả. Tiếp tục kết nối với tài năng trẻ nhé.</p>
+      </div>
+      <button class="primary-btn" data-goto-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg> <span data-i18n="emp.post_new_btn">Đăng tin mới</span></button>
+    </div>
+
+    <div class="stats-grid four">
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="2">
+        <span class="stat-icon" style="color:#4F7DFF;background:#4F7DFF16"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg></span>
+        <div><small data-i18n="emp.stat_jobs">Tin tuyển dụng</small><strong data-stat="jobs">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="4">
+        <span class="stat-icon" style="color:#FF8EC7;background:#FF8EC716"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg></span>
+        <div><small data-i18n="emp.stat_applicants">Tổng ứng viên</small><strong data-stat="applicants">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="2">
+        <span class="stat-icon" style="color:#A78BFA;background:#A78BFA16"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span>
+        <div><small data-i18n="emp.stat_active">Tin hoạt động</small><strong data-stat="active">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="4">
+        <span class="stat-icon" style="color:#22B8A7;background:#22B8A716"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bell"/></svg></span>
+        <div><small data-i18n="emp.stat_new">Đơn mới</small><strong data-stat="new">0</strong><em></em></div>
+      </div>
+    </div>
+
+    <div class="dash-grid employer-grid">
+      <section class="panel">
+        <div class="panel-title">
+          <h3 data-i18n="emp.chart_title">Hiệu quả tuyển dụng</h3>
+          <button type="button"><span data-i18n="common.past_30_days">30 ngày qua</span> <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+        <div class="line-chart">
+          <div class="chart-y"><span>200</span><span>150</span><span>100</span><span>50</span><span>0</span></div>
+          <svg viewBox="0 0 500 170" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#5B7CFA" stop-opacity=".28" />
+                <stop offset="1" stop-color="#5B7CFA" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0 140 C60 128 73 82 135 95 S216 120 275 62 S361 76 410 34 S472 46 500 18 V170 H0Z" fill="url(#area)" />
+            <path d="M0 140 C60 128 73 82 135 95 S216 120 275 62 S361 76 410 34 S472 46 500 18" fill="none" stroke="#4F7DFF" stroke-width="4" />
+          </svg>
+          <div class="chart-x"><span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span></div>
+        </div>
+      </section>
+
+      <section class="panel" id="employer-cands">
+        <div class="panel-title">
+          <h3 data-i18n="emp.new_cands">Ứng viên mới</h3>
+          <button data-goto-tab="4" type="button"><span data-i18n="common.see_all">Xem tất cả</span> <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h3 data-i18n="emp.your_jobs">Tin tuyển dụng của bạn</h3>
+        <button data-goto-tab="2" type="button"><span data-i18n="emp.manage_jobs_btn">Quản lý tin</span> <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="emp.th_job_title">Vị trí tuyển dụng</span>
+          <span data-i18n="emp.th_applicants">Ứng viên</span>
+          <span data-i18n="emp.th_views">Lượt xem</span>
+          <span data-i18n="emp.th_status">Trạng thái</span>
+          <span data-i18n="emp.th_deadline">Hạn nộp</span>
+        </div>
+        <div id="employer-rows"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- TAB 1: HỒ SƠ DOANH NGHIỆP -->
+  <div class="dash-view" data-view="1" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="emp.prof_kicker">THÔNG TIN THƯƠNG HIỆU</span>
+        <h1 data-i18n="emp.prof_title">Hồ sơ doanh nghiệp</h1>
+        <p data-i18n="emp.prof_desc">Giới thiệu thông tin công ty để xây dựng niềm tin với ứng viên sinh viên.</p>
+      </div>
+    </div>
+
+    <div class="profile-card-top">
+      <span class="profile-avatar-big" id="emp-avatar" style="border-radius: 18px;">C</span>
+      <div class="profile-details-top">
+        <h2 id="emp-display-name">Tên Công Ty</h2>
+        <p id="emp-display-sub">Lĩnh vực hoạt động · Trụ sở chính</p>
+        <div class="profile-badge-row">
+          <span class="prof-badge"><svg class="icon" width="14" height="14"><use href="#i-shield"/></svg> <span data-i18n="emp.verified_badge">Doanh nghiệp đã xác thực</span></span>
+          <span class="prof-badge" style="background: #e8f8f2; color: #1fb39f;" data-i18n="emp.trusted_badge">Đối tác HourGlass Trusted</span>
+        </div>
+      </div>
+    </div>
+
+    <form class="panel post-form" id="employer-profile-form">
+      <div class="form-section">
+        <h3 data-i18n="emp.sec_legal">Thông tin pháp nhân &amp; Liên hệ</h3>
+        <div class="profile-form-grid">
+          <div class="profile-field field-full">
+            <label for="emp-company-name" data-i18n="emp.lbl_comp_name">Tên công ty / Chuỗi cửa hàng</label>
+            <input id="emp-company-name" required>
+          </div>
+          <div class="profile-field">
+            <label for="emp-rep-name" data-i18n="emp.lbl_rep_name">Người đại diện tuyển dụng</label>
+            <input id="emp-rep-name" required>
+          </div>
+          <div class="profile-field">
+            <label for="emp-industry" data-i18n="emp.lbl_industry">Lĩnh vực / Ngành nghề</label>
+            <input id="emp-industry" placeholder="Ví dụ: Dịch vụ ăn uống (F&B), Bán lẻ..." data-i18n-placeholder="emp.ph_industry">
+          </div>
+          <div class="profile-field">
+            <label for="emp-phone" data-i18n="emp.lbl_phone">Số điện thoại liên hệ</label>
+            <input id="emp-phone" required>
+          </div>
+          <div class="profile-field">
+            <label for="emp-email" data-i18n="emp.lbl_email">Email doanh nghiệp</label>
+            <input id="emp-email" type="email" required>
+          </div>
+          <div class="profile-field field-full">
+            <label for="emp-address" data-i18n="emp.lbl_address">Địa chỉ trụ sở / Chi nhánh tuyển dụng</label>
+            <input id="emp-address" required placeholder="Số nhà, đường, quận/huyện, tỉnh/thành phố" data-i18n-placeholder="emp.ph_address">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 data-i18n="emp.sec_about">Giới thiệu về doanh nghiệp</h3>
+        <div class="profile-form-grid">
+          <div class="profile-field field-full">
+            <label for="emp-desc" data-i18n="emp.lbl_desc">Mô tả công ty &amp; Môi trường làm việc</label>
+            <textarea id="emp-desc" rows="4" placeholder="Giới thiệu quy mô, văn hóa làm việc và các chế độ đãi ngộ dành cho sinh viên..." data-i18n-placeholder="emp.ph_desc"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary-btn"><span data-i18n="emp.btn_save_comp">Lưu thông tin công ty</span> <svg class="icon" width="18" height="18"><use href="#i-check"/></svg></button>
+      </div>
+    </form>
+  </div>
+
+  <!-- TAB 2: QUẢN LÝ TIN TUYỂN DỤNG -->
+  <div class="dash-view" data-view="2" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="emp.jobs_kicker">DANH SÁCH TIN ĐĂNG</span>
+        <h1 data-i18n="emp.jobs_title">Quản lý tin tuyển dụng</h1>
+        <p data-i18n="emp.jobs_desc">Theo dõi, chỉnh sửa hoặc tạm dừng các bài đăng tuyển của doanh nghiệp.</p>
+      </div>
+      <button class="primary-btn" data-goto-tab="3"><svg class="icon" width="20" height="20"><use href="#i-plus"/></svg> <span data-i18n="emp.post_new_btn">Đăng tin mới</span></button>
+    </div>
+
+    <div class="dash-filter-bar">
+      <div class="dash-pills" id="emp-job-filter-tabs">
+        <button class="dash-pill active" data-job-filter="all" data-i18n="emp.jf_all">Tất cả</button>
+        <button class="dash-pill" data-job-filter="draft" data-i18n="emp.jf_draft">Nháp</button>
+        <button class="dash-pill" data-job-filter="pending" data-i18n="emp.jf_pending">Chờ kiểm duyệt</button>
+        <button class="dash-pill" data-job-filter="approved" data-i18n="emp.jf_approved">Đã đăng</button>
+        <button class="dash-pill" data-job-filter="expired" data-i18n="emp.jf_expired">Hết hạn</button>
+        <button class="dash-pill" data-job-filter="rejected" data-i18n="emp.jf_rejected">Bị từ chối</button>
+      </div>
+      <input class="dash-search-input" id="emp-job-search" placeholder="Tìm theo tên vị trí tuyển dụng..." data-i18n-placeholder="emp.ph_job_search">
+    </div>
+
+    <div class="panel">
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="emp.th_job_title">Vị trí tuyển dụng</span>
+          <span data-i18n="emp.th_type_cat">Hình thức / Ngành</span>
+          <span data-i18n="emp.th_salary">Mức lương</span>
+          <span data-i18n="emp.th_applicants">Ứng viên</span>
+          <span data-i18n="emp.th_status">Trạng thái</span>
+          <span data-i18n="emp.th_actions">Thao tác</span>
+        </div>
+        <div id="employer-full-jobs-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ĐĂNG TIN TUYỂN DỤNG -->
+  <div class="dash-view" data-view="3" hidden>
+    <div>
+      <div class="dash-welcome">
+        <div>
+          <span data-i18n="emp.post_kicker">TẠO CƠ HỘI MỚI</span>
+          <h1 data-i18n="emp.post_title">Đăng tin tuyển dụng</h1>
+          <p data-i18n="emp.post_desc">Điền thông tin chi tiết để tiếp cận đúng ứng viên sinh viên tiềm năng.</p>
+        </div>
+      </div>
+
+      <div class="success-state" id="post-success" hidden>
+        <span><svg class="icon" width="36" height="36" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <h2 data-i18n="emp.post_succ_title">Đăng tin thành công!</h2>
+        <p data-i18n="emp.post_succ_desc">Tin tuyển dụng của bạn đã được ghi nhận và đang chờ quản trị viên kiểm duyệt.</p>
+        <div style="margin-top: 20px; display: flex; justify-content: center; gap: 12px;">
+          <button class="primary-btn" data-goto-tab="2" type="button" data-i18n="emp.btn_manage_list">Quản lý danh sách tin</button>
+          <button class="secondary-btn" id="post-another-btn" type="button" data-i18n="emp.btn_post_another">Đăng thêm tin khác</button>
+        </div>
+      </div>
+
+      <div class="post-form-layout">
+        <!-- Live Preview Card -->
+        <div class="post-preview-panel">
+          <div class="panel" style="position:sticky; top:90px;">
+            <h3 style="font-size:var(--fs-body-sm); margin-bottom:14px; color:#8a94a8; font-weight:700; letter-spacing:0.05em;" data-i18n="emp.preview_heading">XEM TRƯỚC BÀI ĐĂNG</h3>
+            <div class="job-card" style="cursor:default; pointer-events:none;" id="post-preview-card">
+              <div id="preview-img-area" class="job-card-thumb" hidden>
+                <img id="preview-img" class="job-thumb-img" alt="Banner">
+              </div>
+              <div class="job-top">
+                <span class="company-logo" id="preview-logo" style="background:#4F7DFF; min-width:40px;">C</span>
+                <span style="font-size:10px; background:#eef2ff; color:#4f7dff; padding:3px 8px; border-radius:20px; font-weight:700;" id="preview-cat" data-i18n="emp.preview_cat">Danh mục</span>
+              </div>
+              <div class="job-tags" style="margin-top:10px;"><span id="preview-type-tag" data-i18n="emp.preview_type">Hình thức</span></div>
+              <h3 id="preview-title" style="margin:8px 0 2px;" data-i18n="emp.preview_title">Tên công việc</h3>
+              <p class="company-name" id="preview-company"></p>
+              <div class="job-meta">
+                <span><svg class="icon" width="14" height="14"><use href="#i-pin"/></svg> <span id="preview-location" data-i18n="emp.preview_loc">Địa điểm</span></span>
+                <span><svg class="icon" width="14" height="14"><use href="#i-clock"/></svg> <span id="preview-shift" data-i18n="emp.preview_shift">Ca làm việc</span></span>
+              </div>
+              <div class="job-bottom">
+                <strong id="preview-salary" data-i18n="emp.preview_salary">Mức lương</strong>
+                <small id="preview-deadline" style="color:#8a94a8;"></small>
+              </div>
+            </div>
+            <p style="font-size:var(--fs-xs); color:#a0a7b7; margin-top:12px; text-align:center;" data-i18n="emp.preview_note">Bài đăng sẽ hiển thị như trên khi được duyệt.</p>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form class="panel post-form" id="post-form" novalidate>
+          <div class="form-section">
+            <h3 data-i18n="emp.sec_job_basic">Thông tin cơ bản</h3>
+            <div class="form-grid">
+              <label class="full-field"><span class="lbl" data-i18n-html="emp.lbl_job_title_html">Tên công việc <span class="req-star">*</span></span>
+                <input id="pf-title" name="title" required placeholder="Ví dụ: Trợ lý Marketing Part-time hoặc Nhân viên pha chế" data-i18n-placeholder="emp.ph_job_title">
+                <small class="field-err" id="err-title"></small>
+              </label>
+              <label><span class="lbl" data-i18n-html="emp.lbl_job_cat_html">Danh mục <span class="req-star">*</span></span>
+                <select id="pf-cat" name="category" required>
+                  <option value="" data-i18n="emp.opt_select_cat">-- Chọn danh mục --</option>
+                  <option>Phục vụ</option><option>Bán hàng</option><option>Marketing</option>
+                  <option>Công nghệ thông tin</option><option>Thiết kế</option>
+                  <option>Gia sư</option><option>Kho vận</option><option>Khác</option>
+                </select>
+                <small class="field-err" id="err-cat"></small>
+              </label>
+              <label><span class="lbl" data-i18n-html="emp.lbl_job_type_html">Hình thức làm việc <span class="req-star">*</span></span>
+                <select id="pf-type" name="job_type" required>
+                  <option value="" data-i18n="emp.opt_select_type">-- Chọn hình thức --</option>
+                  <option value="Part-time" data-i18n="emp.opt_type_part">Bán thời gian (Part-time)</option>
+                  <option value="Toàn thời gian" data-i18n="emp.opt_type_full">Toàn thời gian</option>
+                  <option value="Thực tập" data-i18n="emp.opt_type_intern">Thực tập</option>
+                  <option value="Remote" data-i18n="emp.opt_type_remote">Remote / Làm từ xa</option>
+                </select>
+                <small class="field-err" id="err-type"></small>
+              </label>
+              <label class="full-field"><span class="lbl" data-i18n-html="emp.lbl_job_desc_html">Mô tả công việc <span class="req-star">*</span></span>
+                <textarea id="pf-desc" name="description" rows="5" required placeholder="Mô tả trách nhiệm và công việc hàng ngày..." data-i18n-placeholder="emp.ph_job_desc"></textarea>
+                <small class="field-err" id="err-desc"></small>
+              </label>
+              <label class="full-field"><span class="lbl" data-i18n-html="emp.lbl_job_reqs_html">Yêu cầu ứng viên <span class="req-star">*</span></span>
+                <textarea id="pf-reqs" name="requirements" rows="4" required placeholder="Kỹ năng, tinh thần trách nhiệm và phẩm chất cần có..." data-i18n-placeholder="emp.ph_job_reqs"></textarea>
+                <small class="field-err" id="err-reqs"></small>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 data-i18n="emp.sec_job_terms">Chế độ &amp; Thời gian làm việc</h3>
+            <div class="form-grid">
+              <label><span class="lbl" data-i18n-html="emp.lbl_job_salary_html">Mức lương <span class="req-star">*</span></span>
+                <input id="pf-salary" name="salary" required placeholder="Ví dụ: 30–40K/giờ hoặc 4–5 triệu/tháng" data-i18n-placeholder="emp.ph_job_salary">
+                <small class="field-err" id="err-salary"></small>
+              </label>
+              <label><span class="lbl" data-i18n-html="emp.lbl_job_area_html">Khu vực làm việc <span class="req-star">*</span></span>
+                <select id="pf-area" name="location" required>
+                  <option value="" data-i18n="emp.opt_select_area">-- Chọn khu vực --</option>
+                  <option value="TP. Hồ Chí Minh" data-i18n="area.TP. Hồ Chí Minh">TP. Hồ Chí Minh</option><option value="Hà Nội" data-i18n="area.Hà Nội">Hà Nội</option>
+                  <option value="Đà Nẵng" data-i18n="area.Đà Nẵng">Đà Nẵng</option><option value="Cần Thơ" data-i18n="area.Cần Thơ">Cần Thơ</option>
+                  <option value="Remote" data-i18n="area.Remote">Remote</option><option value="Khác">Khác</option>
+                </select>
+                <small class="field-err" id="err-area"></small>
+              </label>
+              <label><span class="lbl" data-i18n="emp.lbl_job_addr">Địa chỉ cụ thể</span>
+                <input id="pf-address" name="address" placeholder="Số nhà, đường, quận..." data-i18n-placeholder="emp.ph_job_addr">
+              </label>
+              <label><span class="lbl" data-i18n="emp.lbl_job_shift">Ca làm việc</span>
+                <select id="pf-shift" name="shift">
+                  <option value="" data-i18n="emp.opt_select_shift">-- Chọn ca --</option>
+                  <option value="Ca sáng (6:00 – 12:00)" data-i18n="emp.opt_shift_morning">Ca sáng (6:00 – 12:00)</option>
+                  <option value="Ca chiều (12:00 – 18:00)" data-i18n="emp.opt_shift_afternoon">Ca chiều (12:00 – 18:00)</option>
+                  <option value="Ca tối (18:00 – 23:00)" data-i18n="emp.opt_shift_evening">Ca tối (18:00 – 23:00)</option>
+                  <option value="Ca linh hoạt" data-i18n="emp.opt_shift_flex">Ca linh hoạt</option>
+                  <option value="Ca hành chính (8:00 – 17:00)" data-i18n="emp.opt_shift_office">Ca hành chính (8:00 – 17:00)</option>
+                  <option value="Thỏa thuận" data-i18n="common.Negotiable">Thỏa thuận</option>
+                </select>
+              </label>
+              <label><span class="lbl" data-i18n="emp.lbl_job_slots">Số lượng cần tuyển</span>
+                <input id="pf-slots" name="slots" type="number" min="1" placeholder="Ví dụ: 3" data-i18n-placeholder="emp.ph_job_slots">
+              </label>
+              <label><span class="lbl" data-i18n-html="emp.lbl_job_deadline_html">Hạn ứng tuyển <span class="req-star">*</span></span>
+                <input id="pf-deadline" name="deadline" type="date" required>
+                <small class="field-err" id="err-deadline"></small>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 data-i18n-html="emp.sec_job_img_html">Hình ảnh / Banner công việc <span style="font-weight:400; color:#8a94a8; font-size:var(--fs-xs);">(không bắt buộc, tối đa 5MB)</span></h3>
+            <label class="img-drop-label" id="img-drop-label" for="pf-img-input">
+              <svg class="icon" width="30" height="30"><use href="#i-upload"/></svg>
+              <strong data-i18n="emp.img_drop_title">Kéo thả hoặc nhấn để chọn ảnh minh họa công việc</strong>
+              <small data-i18n="emp.img_drop_sub">PNG, JPG, JPEG, WEBP – tối đa 5MB (Tỷ lệ khuyến nghị 16:9)</small>
+              <input type="file" id="pf-img-input" accept=".jpg,.jpeg,.png,.webp,image/*" style="display:none">
+            </label>
+            <div id="img-chosen-row" hidden style="display:flex; align-items:center; gap:12px; margin-top:10px; padding:10px 14px; background:#f8f9fe; border-radius:12px; border:1px solid #e2e6f4;">
+              <img id="img-thumb" alt="thumb" style="width:76px; height:48px; border-radius:8px; object-fit:cover;">
+              <div style="flex:1; min-width:0;">
+                <strong id="img-fname" style="font-size:var(--fs-xs); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></strong>
+                <small id="img-fsize" style="color:#8a94a8;"></small>
+              </div>
+              <button type="button" id="img-remove-btn" style="border:0; background:#ffe8ef; color:#e54d6e; border-radius:8px; padding:6px 10px; font-size:var(--fs-xs); font-weight:700; cursor:pointer;" data-i18n="stu.remove_short">Xóa</button>
+            </div>
+            <small class="field-err" id="err-img"></small>
+          </div>
+
+          <div class="form-actions" style="border-top:1px solid #f0f2f8; padding-top:20px;">
+            <button type="button" class="secondary-btn" data-goto-tab="2" data-i18n="common.cancel">Hủy bỏ</button>
+            <button type="button" class="secondary-btn" id="post-draft-btn" data-i18n="emp.btn_save_draft">Lưu nháp</button>
+            <button class="primary-btn" type="submit" id="post-submit-btn"><span data-i18n="emp.btn_post_submit">Đăng tuyển ngay</span> <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: QUẢN LÝ ỨNG VIÊN -->
+  <div class="dash-view" data-view="4" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="emp.cand_kicker">DANH SÁCH ỨNG TUYỂN</span>
+        <h1 data-i18n="emp.cand_title">Quản lý ứng viên</h1>
+        <p data-i18n="emp.cand_desc">Xem xét hồ sơ, đặt lịch phỏng vấn và gửi thông báo kết quả cho ứng viên.</p>
+      </div>
+    </div>
+
+    <div class="dash-filter-bar cand-toolbar" id="cand-toolbar">
+      <div class="seg-toggle"><button type="button" data-cv="kanban" class="active" data-i18n="emp.view_kanban">Kanban</button><button type="button" data-cv="list" data-i18n="emp.view_list">Danh sách</button></div>
+      <select id="cand-job-select" class="dash-search-input" aria-label="Lọc theo vị trí"></select>
+    </div>
+    <div class="dash-pills" id="cand-filter-tabs" style="margin-bottom:14px" hidden>
+        <button class="dash-pill active" data-cand-filter="all" data-i18n="emp.cf_all">Tất cả</button>
+        <button class="dash-pill" data-cand-filter="submitted" data-i18n="emp.cf_submitted">Mới nộp</button>
+        <button class="dash-pill" data-cand-filter="reviewing" data-i18n="emp.cf_reviewing">Đã tiếp nhận</button>
+        <button class="dash-pill" data-cand-filter="interview" data-i18n="emp.cf_interview">Phỏng vấn</button>
+        <button class="dash-pill" data-cand-filter="accepted" data-i18n="emp.cf_accepted">Đã trúng tuyển</button>
+        <button class="dash-pill" data-cand-filter="rejected" data-i18n="emp.cf_rejected">Từ chối</button>
+    </div>
+
+    <div id="employer-candidates-full"></div>
+  </div>
+
+  <!-- TAB 5: CÀI ĐẶT TÀI KHOẢN -->
+  <div class="dash-view" data-view="5" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="emp.set_kicker">BẢO MẬT DOANH NGHIỆP</span>
+        <h1 data-i18n="emp.set_title">Cài đặt tài khoản tuyển dụng</h1>
+        <p data-i18n="emp.set_desc">Quản lý mật khẩu và tùy chọn thông báo ứng viên.</p>
+      </div>
+    </div>
+
+    <div class="profile-form-grid">
+      <form class="panel" id="emp-pw-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="font-size: var(--fs-h4); margin-bottom: 6px;" data-i18n="emp.pw_title">Đổi mật khẩu tài khoản</h3>
+        <div class="profile-field">
+          <label data-i18n="stu.lbl_cur_pw">Mật khẩu hiện tại</label>
+          <input type="password" required placeholder="Nhập mật khẩu hiện tại" data-i18n-placeholder="stu.ph_cur_pw">
+        </div>
+        <div class="profile-field">
+          <label data-i18n="stu.lbl_new_pw">Mật khẩu mới</label>
+          <input type="password" required placeholder="Tối thiểu 6 ký tự" data-i18n-placeholder="stu.ph_new_pw">
+        </div>
+        <div class="profile-field">
+          <label data-i18n="stu.lbl_conf_pw">Xác nhận mật khẩu mới</label>
+          <input type="password" required placeholder="Nhập lại mật khẩu mới" data-i18n-placeholder="stu.ph_conf_pw">
+        </div>
+        <button type="submit" class="primary-btn" style="align-self: flex-start; margin-top: 8px;" data-i18n="stu.btn_update_pw">Cập nhật mật khẩu</button>
+      </form>
+
+      <form class="panel" id="emp-pref-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <h3 style="font-size: var(--fs-h4); margin-bottom: 6px;" data-i18n="emp.pref_title">Cài đặt thông báo &amp; Tuyển dụng</h3>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: var(--fs-body-sm); cursor: pointer;">
+          <input type="checkbox" checked style="accent-color: #4f7dff; width: 18px; height: 18px;">
+          <span data-i18n="emp.pref1">Gửi email tức thì khi có ứng viên mới nộp hồ sơ</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: var(--fs-body-sm); cursor: pointer;">
+          <input type="checkbox" checked style="accent-color: #4f7dff; width: 18px; height: 18px;">
+          <span data-i18n="emp.pref2">Nhận báo cáo tổng hợp hiệu quả tin tuyển dụng hàng tuần</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: var(--fs-body-sm); cursor: pointer;">
+          <input type="checkbox" checked style="accent-color: #4f7dff; width: 18px; height: 18px;">
+          <span data-i18n="emp.pref3">Tự động gửi email xác nhận đã nhận hồ sơ cho ứng viên</span>
+        </label>
+        <button type="submit" class="secondary-btn" style="align-self: flex-start; margin-top: 8px;" data-i18n="stu.btn_save_pref">Lưu tùy chọn</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="dash-placeholder" hidden></div>
+</main>
+</div></div>
+<script src="js/locales/vi.js"></script><script src="js/locales/en.js"></script><script src="js/i18n.js"></script>
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/saved-jobs.js"></script><script src="js/responsive.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/reviews-reports.js"></script><script src="js/validators.js"></script><script src="js/dashboard.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/ai-assistant.js"></script>
+</body>
+</html>

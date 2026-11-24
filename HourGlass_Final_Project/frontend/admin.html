@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="adm.page_title">Quản trị hệ thống – HourGlass</title>
+<meta name="description" content="HourGlass - nền tảng việc làm dành riêng cho sinh viên.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/ai-assistant.css">
+<script src="js/config.js"></script>
+</head>
+<body data-role="admin">
+<script src="js/icons.js"></script>
+<div class="dashboard">
+<aside class="dash-sidebar" id="dash-sidebar">
+<div><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></div>
+<div class="role-label" data-i18n="adm.role_label">QUẢN TRỊ HỆ THỐNG</div>
+<nav><button data-tab="0" class=active><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg><span data-i18n="adm.tab_overview">Tổng quan hệ thống</span></button><button data-tab="1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg><span data-i18n="adm.tab_students">Quản lý sinh viên</span></button><button data-tab="2"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><span data-i18n="adm.tab_employers">Quản lý nhà tuyển dụng</span></button><button data-tab="3"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg><span data-i18n="adm.tab_jobs">Quản lý việc làm</span></button><button data-tab="4"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-chart"/></svg><span data-i18n="adm.tab_reports">Thống kê &amp; báo cáo</span></button><button data-tab="5"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span data-i18n="adm.tab_moderation">Kiểm duyệt tin đăng</span></button><button data-tab="6"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg><span data-i18n="adm.tab_categories">Danh mục ngành nghề</span></button><button data-tab="7"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-user"/></svg><span data-i18n="adm.tab_roles">Phân quyền quản trị</span></button></nav>
+<div class="sidebar-help ai-help"><span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span><strong data-i18n="common.ai_title">Trợ lý AI HourGlass</strong><small data-i18n="common.ai_sub">Hỏi đáp &amp; hỗ trợ 24/7</small><button type="button" data-ai-open aria-controls="hg-ai-panel" aria-expanded="false"><span data-i18n="common.ai_chat">Chat ngay</span> <svg class="icon" width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+</aside>
+<div class="dash-backdrop" id="dash-backdrop" hidden></div>
+<div class="dash-main">
+<header class="dash-header">
+<div><button class="dash-menu" id="dash-menu" type="button" aria-label="Mở menu" data-i18n-title="nav.menu" aria-controls="dash-sidebar"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-menu"/></svg></button><span class="mobile-brand"><a class="logo" href="index.html"><span class="logo-mark"><span></span><i></i></span><span>Hour<span>Glass</span></span></a></span><button class="dash-search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg><span data-i18n="common.quick_search">Tìm kiếm nhanh...</span></button></div>
+<div><button class="notify"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bell"/></svg><i></i></button><span class="dash-avatar"></span><span class="user-name"><strong></strong><small data-i18n="nav.role.admin">Admin</small></span></div>
+</header>
+<main class="dash-content">
+  <!-- TAB 0: TỔNG QUAN HỆ THỐNG -->
+  <div class="dash-view" data-view="0">
+    <div class="dash-welcome">
+      <div>
+        <span>HOURGLASS ADMIN</span>
+        <h1 data-i18n="adm.tab_overview">Tổng quan hệ thống</h1>
+        <p data-i18n="adm.welcome_sub">Theo dõi tăng trưởng, hoạt động và chất lượng nền tảng.</p>
+      </div>
+      <button class="secondary-btn" type="button"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-calendar"/></svg> <span data-i18n="common.past_30_days">30 ngày qua</span></button>
+    </div>
+
+    <div class="stats-grid four">
+      <div class="stat-card">
+        <span class="stat-icon" style="color:#4F7DFF;background:#4F7DFF16"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-users"/></svg></span>
+        <div><small data-i18n="adm.stat_users">Tổng người dùng</small><strong data-stat="users">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="1">
+        <span class="stat-icon" style="color:#A78BFA;background:#A78BFA16"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-file"/></svg></span>
+        <div><small data-i18n="adm.stat_students">Sinh viên</small><strong data-stat="students">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="2">
+        <span class="stat-icon" style="color:#FF8EC7;background:#FF8EC716"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg></span>
+        <div><small data-i18n="adm.stat_employers">Nhà tuyển dụng</small><strong data-stat="employers">0</strong><em></em></div>
+      </div>
+      <div class="stat-card" style="cursor: pointer;" data-goto-tab="3">
+        <span class="stat-icon" style="color:#22B8A7;background:#22B8A716"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-sparkle"/></svg></span>
+        <div><small data-i18n="adm.stat_jobs">Tin tuyển dụng</small><strong data-stat="jobs">0</strong><em></em></div>
+      </div>
+    </div>
+
+    <div class="dash-grid admin-grid">
+      <section class="panel">
+        <div class="panel-title">
+          <h3 data-i18n="adm.chart_users_6m">Người dùng 6 tháng gần nhất</h3>
+          <small style="color:#8a94a8" data-i18n="adm.chart_users_sub">Tích lũy · Sinh viên / Nhà tuyển dụng</small>
+        </div>
+        <div class="admin-chart">
+          <div class="bar-set">
+          </div>
+          <div class="admin-legend">
+            <span><i></i><b style="font-weight:inherit" data-i18n="adm.stat_students">Sinh viên</b></span>
+            <span><i></i><b style="font-weight:inherit" data-i18n="adm.stat_employers">Nhà tuyển dụng</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel activity" id="admin-activity">
+        <div class="panel-title">
+          <h3 data-i18n="adm.recent_reports">Báo cáo gần đây</h3>
+          <button data-goto-tab="4" type="button"><span data-i18n="common.view_all">Xem tất cả</span> <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel moderation">
+      <div class="panel-title">
+        <h3 data-i18n="adm.mod_panel_title">Kiểm duyệt tin tuyển dụng</h3>
+        <button data-goto-tab="5" type="button"><span id="pending-count"></span> <svg class="icon" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_comp_pos">Doanh nghiệp &amp; vị trí</span>
+          <span data-i18n="adm.th_sent_date">Ngày gửi</span>
+          <span data-i18n="adm.th_category">Danh mục</span>
+          <span data-i18n="adm.th_status">Trạng thái</span>
+          <span data-i18n="adm.th_actions">Thao tác</span>
+        </div>
+        <div id="moderation-rows"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- TAB 1: QUẢN LÝ SINH VIÊN -->
+  <div class="dash-view" data-view="1" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="adm.stu_kicker">QUẢN TRỊ NGƯỜI DÙNG</span>
+        <h1 data-i18n="adm.stu_title">Quản lý sinh viên</h1>
+        <p data-i18n="adm.stu_desc">Danh sách các tài khoản sinh viên đăng ký trên nền tảng HourGlass.</p>
+      </div>
+    </div>
+
+    <div class="dash-filter-bar">
+      <input class="dash-search-input" id="admin-student-search" placeholder="Tìm theo tên, email hoặc trường đại học..." data-i18n-placeholder="adm.stu_search_ph">
+    </div>
+
+    <div class="panel">
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_fullname">Họ và tên</span>
+          <span data-i18n="adm.th_email_phone">Email &amp; SĐT</span>
+          <span data-i18n="adm.th_uni_major">Trường đại học / Ngành</span>
+          <span data-i18n="adm.th_join_date">Ngày tham gia</span>
+          <span data-i18n="adm.th_status">Trạng thái</span>
+          <span data-i18n="adm.th_actions">Thao tác</span>
+        </div>
+        <div id="admin-students-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: QUẢN LÝ NHÀ TUYỂN DỤNG -->
+  <div class="dash-view" data-view="2" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="adm.emp_kicker">QUẢN TRỊ DOANH NGHIỆP</span>
+        <h1 data-i18n="adm.emp_title">Quản lý nhà tuyển dụng</h1>
+        <p data-i18n="adm.emp_desc">Danh sách các công ty, thương hiệu và chuỗi cửa hàng tuyển dụng.</p>
+      </div>
+    </div>
+
+    <div class="dash-filter-bar">
+      <input class="dash-search-input" id="admin-employer-search" placeholder="Tìm theo tên công ty, người đại diện..." data-i18n-placeholder="adm.emp_search_ph">
+    </div>
+
+    <div class="panel">
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_company">Doanh nghiệp</span>
+          <span data-i18n="adm.th_rep">Người đại diện</span>
+          <span data-i18n="adm.th_ind_contact">Lĩnh vực &amp; Liên hệ</span>
+          <span data-i18n="adm.th_posts_count">Số tin đã đăng</span>
+          <span data-i18n="adm.th_verified">Xác thực</span>
+          <span data-i18n="adm.th_actions">Thao tác</span>
+        </div>
+        <div id="admin-employers-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: QUẢN LÝ VIỆC LÀM -->
+  <div class="dash-view" data-view="3" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="adm.jobs_kicker">CƠ SỞ DỮ LIỆU TIN TUYỂN</span>
+        <h1 data-i18n="adm.jobs_title">Quản lý tất cả việc làm</h1>
+        <p data-i18n="adm.jobs_desc">Kiểm tra toàn bộ các bài đăng tuyển trên hệ thống HourGlass.</p>
+      </div>
+    </div>
+
+    <div class="dash-filter-bar">
+      <div class="dash-pills" id="admin-jobs-filter-tabs">
+        <button class="dash-pill active" data-aj-filter="all" data-i18n="adm.jf_all">Tất cả</button>
+        <button class="dash-pill" data-aj-filter="approved" data-i18n="adm.jf_approved">Đang hoạt động</button>
+        <button class="dash-pill" data-aj-filter="pending" data-i18n="adm.jf_pending">Chờ kiểm duyệt</button>
+        <button class="dash-pill" data-aj-filter="rejected" data-i18n="adm.jf_rejected">Bị từ chối</button>
+      </div>
+      <input class="dash-search-input" id="admin-job-search" placeholder="Tìm theo tiêu đề, công ty..." data-i18n-placeholder="adm.jobs_search_ph">
+    </div>
+
+    <div class="panel">
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_job_pos">Vị trí tuyển dụng</span>
+          <span data-i18n="adm.th_company">Doanh nghiệp</span>
+          <span data-i18n="adm.th_category">Danh mục</span>
+          <span data-i18n="adm.th_salary">Mức lương</span>
+          <span data-i18n="adm.th_status">Trạng thái</span>
+          <span data-i18n="adm.th_actions">Thao tác</span>
+        </div>
+        <div id="admin-all-jobs-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: THỐNG KÊ & BÁO CÁO -->
+  <div class="dash-view" data-view="4" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="adm.rep_kicker">SỐ LIỆU &amp; PHẢN ÁNH</span>
+        <h1 data-i18n="adm.rep_title">Thống kê &amp; Báo cáo vi phạm</h1>
+        <p data-i18n="adm.rep_desc">Theo dõi chỉ số hiệu quả và xử lý các báo cáo từ cộng đồng sinh viên.</p>
+      </div>
+    </div>
+
+    <div class="stats-grid four" style="margin-bottom: 24px;">
+      <div class="stat-card">
+        <span class="stat-icon" style="color:#22B8A7;background:#22B8A716"><svg class="icon" width="20" height="20"><use href="#i-check"/></svg></span>
+        <div><small data-i18n="adm.stat_approve_rate">Tỷ lệ duyệt tin</small><strong id="stat-approve-rate">—</strong><em data-i18n="adm.stat_approve_sub">Trên tin đã xử lý</em></div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" style="color:#4F7DFF;background:#4F7DFF16"><svg class="icon" width="20" height="20"><use href="#i-clock"/></svg></span>
+        <div><small data-i18n="adm.stat_apps_total">Đơn ứng tuyển</small><strong id="stat-apps-total">0</strong><em data-i18n="adm.stat_users_sub">Toàn hệ thống</em></div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" style="color:#A78BFA;background:#A78BFA16"><svg class="icon" width="20" height="20"><use href="#i-briefcase"/></svg></span>
+        <div><small data-i18n="adm.stat_hot_cat">Ngành hot nhất</small><strong id="stat-hot-cat">—</strong><em id="stat-hot-sub"></em></div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon" style="color:#FF8EC7;background:#FF8EC716"><svg class="icon" width="20" height="20"><use href="#i-shield"/></svg></span>
+        <div><small data-i18n="adm.stat_reports">Báo cáo vi phạm</small><strong id="stat-report-count">2</strong><em data-i18n="adm.stat_reports_sub">Cần theo dõi</em></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-title"><h3 data-i18n="adm.chart_jobs_by_cat">Tin tuyển dụng theo ngành nghề</h3></div>
+      <div id="admin-cat-chart" class="hbars"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <h3 data-i18n="adm.rep_list_title">Danh sách báo cáo từ người dùng</h3>
+      </div>
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_rep_type">Loại báo cáo</span>
+          <span data-i18n="adm.th_rep_reason">Lý do phản ánh</span>
+          <span data-i18n="adm.th_rep_target">Đối tượng</span>
+          <span data-i18n="adm.th_rep_time">Thời gian</span>
+          <span data-i18n="adm.th_status">Trạng thái</span>
+          <span data-i18n="adm.th_actions">Thao tác</span>
+        </div>
+        <div id="admin-reports-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: KIỂM DUYỆT TIN ĐĂNG -->
+  <div class="dash-view" data-view="5" hidden>
+    <div class="dash-welcome">
+      <div>
+        <span data-i18n="adm.mod_kicker">TRUNG TÂM PHÊ DUYỆT</span>
+        <h1 data-i18n="adm.mod_title">Kiểm duyệt tin tuyển dụng</h1>
+        <p data-i18n="adm.mod_desc">Phê duyệt hoặc từ chối các tin tuyển dụng do doanh nghiệp gửi lên hệ thống.</p>
+      </div>
+    </div>
+
+    <div class="dash-filter-bar">
+      <div class="dash-pills" id="admin-mod-filter-tabs">
+        <button class="dash-pill active" data-mod-filter="pending" data-i18n="adm.mf_pending">Chờ duyệt gấp</button>
+        <button class="dash-pill" data-mod-filter="all" data-i18n="adm.mf_all">Tất cả</button>
+        <button class="dash-pill" data-mod-filter="approved" data-i18n="adm.mf_approved">Đã duyệt</button>
+        <button class="dash-pill" data-mod-filter="rejected" data-i18n="adm.mf_rejected">Từ chối / Khóa</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="manage-table">
+        <div class="table-head">
+          <span data-i18n="adm.th_comp_pos">Doanh nghiệp &amp; Vị trí</span>
+          <span data-i18n="adm.th_sent_date">Ngày gửi</span>
+          <span data-i18n="adm.th_category">Danh mục</span>
+          <span data-i18n="adm.th_salary">Mức lương</span>
+          <span data-i18n="adm.th_status">Trạng thái</span>
+          <span data-i18n="adm.th_approve_col">Phê duyệt</span>
+        </div>
+        <div id="admin-full-mod-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dash-placeholder" hidden></div>
+
+  <!-- TAB 6: DANH MỤC NGÀNH NGHỀ (CRUD) -->
+  <div class="dash-view" data-view="6" hidden>
+    <div class="dash-welcome"><div><span data-i18n="adm.cat_kicker">CẤU HÌNH HỆ THỐNG</span><h1 data-i18n="adm.cat_title">Danh mục ngành nghề</h1><p data-i18n="adm.cat_desc">Thêm, sửa, xóa các ngành nghề dùng để phân loại tin tuyển dụng.</p></div>
+      <button class="primary-btn" type="button" id="cat-add-btn"><svg class="icon" width="20" height="20"><use href="#i-plus"/></svg> <span data-i18n="adm.btn_add_cat">Thêm danh mục</span></button></div>
+    <div class="dash-filter-bar"><input class="dash-search-input" id="cat-search" placeholder="Tìm theo tên danh mục..." data-i18n-placeholder="adm.cat_search_ph"></div>
+    <div class="panel"><div class="manage-table"><div class="table-head cat-grid"><span data-i18n="adm.th_cat_name">Tên danh mục</span><span data-i18n="adm.th_cat_desc">Mô tả</span><span data-i18n="adm.th_cat_count">Số tin</span><span data-i18n="adm.th_cat_updated">Cập nhật</span><span data-i18n="adm.th_actions">Thao tác</span></div><div id="cat-rows"></div></div></div>
+  </div>
+
+  <!-- TAB 7: PHÂN QUYỀN QUẢN TRỊ -->
+  <div class="dash-view" data-view="7" hidden>
+    <div class="dash-welcome"><div><span data-i18n="adm.role_kicker">BẢO MẬT & QUYỀN TRUY CẬP</span><h1 data-i18n="adm.role_title">Phân quyền quản trị</h1><p data-i18n="adm.role_desc">Admin gốc có thể cấp hoặc thu hồi quyền quản trị viên cho các tài khoản khác.</p></div></div>
+    <div id="role-banner"></div>
+    <div class="dash-filter-bar"><div class="dash-pills" id="role-filter-tabs"><button class="dash-pill active" data-role-filter="all" data-i18n="adm.rf_all">Tất cả</button><button class="dash-pill" data-role-filter="admin" data-i18n="adm.rf_admin">Quản trị viên</button><button class="dash-pill" data-role-filter="employer" data-i18n="adm.rf_employer">Nhà tuyển dụng</button><button class="dash-pill" data-role-filter="student" data-i18n="adm.rf_student">Sinh viên</button></div>
+      <input class="dash-search-input" id="role-search" placeholder="Tìm theo tên hoặc email..." data-i18n-placeholder="adm.role_search_ph"></div>
+    <div class="panel"><div class="manage-table"><div class="table-head role-grid"><span data-i18n="adm.th_account">Tài khoản</span><span data-i18n="adm.th_email">Email</span><span data-i18n="adm.th_role">Vai trò</span><span data-i18n="adm.th_status">Trạng thái</span><span data-i18n="adm.th_actions">Thao tác</span></div><div id="role-rows"></div></div></div>
+  </div>
+</main>
+</div></div>
+<script src="js/locales/vi.js"></script><script src="js/locales/en.js"></script><script src="js/i18n.js"></script>
+<script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/saved-jobs.js"></script><script src="js/responsive.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/dashboard.js"></script>
+<script src="js/admin-extra.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/ai-assistant.js"></script>
+</body>
+</html>

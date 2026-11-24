@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="detail.page_title">Chi tiết việc làm – HourGlass</title>
+<meta name="description" content="HourGlass - nền tảng việc làm dành riêng cho sinh viên.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/detail.css">
+<link rel="stylesheet" href="css/responsive.css">
+<script src="js/config.js"></script>
+</head>
+<body>
+<script src="js/icons.js"></script>
+<div id="site-header" data-active="jobs.html"></div>
+<main class="page-bg detail-page">
+<div class="container breadcrumbs"><a href="index.html" data-i18n="nav.home">Trang chủ</a><svg class="icon" width="14" height="14" aria-hidden="true"><use href="#i-chevron"/></svg><a href="jobs.html" data-i18n="detail.bc_jobs">Việc làm</a><svg class="icon" width="14" height="14" aria-hidden="true"><use href="#i-chevron"/></svg><span id="d-crumb"></span></div>
+<div class="container detail-grid">
+<div>
+<section class="detail-card detail-head">
+<div class="detail-banner-wrap" id="d-banner-wrap" style="display:none;">
+  <img id="d-banner-img" class="detail-banner-img" alt="Hình ảnh công việc" data-i18n-title="detail.banner_alt" loading="lazy">
+  <div id="d-banner-fallback"></div>
+</div>
+<div class="detail-company"><span class="company-logo big" id="d-logo"></span>
+<div><div class="job-tags" id="d-tags"></div><h1 id="d-title"></h1><p id="d-sub"></p></div></div>
+<div class="detail-facts">
+<span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-briefcase"/></svg><div><small data-i18n="detail.fact_salary">Mức lương</small><strong id="d-salary"></strong></div></span>
+<span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-clock"/></svg><div><small data-i18n="detail.fact_time">Thời gian</small><strong id="d-time"></strong></div></span>
+<span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-calendar"/></svg><div><small data-i18n="detail.fact_deadline">Hạn ứng tuyển</small><strong id="d-deadline"></strong></div></span>
+</div></section>
+<section class="detail-card content-card">
+<h2 data-i18n="detail.desc_title">Mô tả công việc</h2><p id="d-desc"></p><ul id="d-extra"></ul>
+<h2 data-i18n="detail.reqs_title">Yêu cầu ứng viên</h2><ul id="d-reqs"></ul>
+<h2 data-i18n="detail.perks_title">Quyền lợi của bạn</h2><div class="perk-grid" id="d-perks"></div>
+</section></div>
+<aside>
+<section class="detail-card action-card">
+<button class="primary-btn full" data-modal="apply"><span data-i18n="common.apply_now">Ứng tuyển ngay</span> <svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+<button class="secondary-btn full" id="detail-save" type="button"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="#i-bookmark"/></svg> <span id="detail-save-label" data-i18n="detail.save">Lưu tin</span></button>
+<small data-i18n="detail.reply_note">Phản hồi trung bình trong 2 ngày</small>
+<div id="d-rr-actions"></div></section>
+<section class="detail-card company-card"><h3 id="d-company-h"></h3>
+<div><span class="company-logo" id="d-company-logo"></span><div><strong id="d-company-name"></strong><small id="d-company-industry"></small></div></div>
+<p id="d-company-desc"></p></section>
+<section class="detail-card rr-detail-rep" id="d-reputation" hidden><h3 data-i18n="detail.reputation_title">Đánh giá nhà tuyển dụng</h3><div id="d-reputation-body"></div></section>
+</aside></div>
+
+<section class="container" style="padding-top: 40px; padding-bottom: 60px;">
+  <div class="section-head">
+    <div>
+      <span class="kicker" data-i18n="detail.related_kicker">CƠ HỘI TƯƠNG TỰ</span>
+      <h2 data-i18n="detail.related_title">Việc làm khác có thể bạn quan tâm</h2>
+    </div>
+    <a class="link-btn" href="jobs.html"><span data-i18n="detail.see_all_jobs">Xem tất cả công việc</span> <svg class="icon" width="17" height="17" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="job-grid" id="related-jobs"></div>
+</section>
+
+</main>
+<div id="site-footer"></div>
+<script src="js/locales/vi.js"></script><script src="js/locales/en.js"></script><script src="js/i18n.js"></script>
+<script src="js/layout.js"></script><script src="js/mock-data.js"></script><script src="js/main.js"></script><script src="js/saved-jobs.js"></script><script src="js/responsive.js"></script><script src="js/common.js"></script><script src="js/adapter.js"></script><script src="js/modal.js"></script><script src="js/reviews-reports.js"></script><script src="js/detail.js"></script>
+<script src="js/notify.js"></script>
+</body>
+</html>
